@@ -9,20 +9,15 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <!-- Animated Background with Particles -->
+    <!-- Animated Background -->
     <div class="bg-animation">
         <div class="aurora"></div>
         <div class="aurora aurora-2"></div>
         <div class="grid"></div>
         <div class="particles" id="particles"></div>
-        <div class="floating-shapes">
-            <div class="shape shape-1"></div>
-            <div class="shape shape-2"></div>
-            <div class="shape shape-3"></div>
-        </div>
     </div>
 
-    <!-- Conditional Announcement Bar -->
+    <!-- Announcement Bar (Hidden by default) -->
     <div id="announcement-bar" class="announcement-bar hidden">
         <div class="announcement-content">
             <i class="fas fa-bullhorn announcement-icon"></i>
@@ -53,7 +48,7 @@
     <section class="hero">
         <div class="hero-content fade-in">
             <div class="hero-badge">
-                <i class="fas fa-sparkles"></i>
+                <i class="fas fa-shield-alt"></i>
                 <span>Exclusive for VIT Students</span>
             </div>
             <h1>Learn. Share.<br><span class="gradient-text">Grow Together.</span></h1>
@@ -142,92 +137,141 @@
         <p>&copy; 2026 VITNotes Hub. Built with ❤️ for VIT Students.</p>
     </footer>
 
-    <!-- Login Modal -->
+    <!-- Login Modal - EXACT DESIGN FROM REFERENCE IMAGE -->
     <div id="login-modal" class="modal hidden">
         <div class="modal-overlay"></div>
         <div class="login-modal-content">
             <button class="modal-close" id="close-modal"><i class="fas fa-times"></i></button>
             
             <div class="login-container">
-                <!-- Left Side - Branding -->
+                <!-- Left Side - Dark Blue/Purple with VIT Branding -->
                 <div class="login-left">
-                    <div class="login-brand">
-                        <div class="brand-logo">
-                            <i class="fas fa-book-open"></i>
-                        </div>
-                        <h2>VITNotes Hub</h2>
-                    </div>
+                    <!-- VIT Building Silhouette Background -->
+                    <div class="vit-building-bg"></div>
                     
-                    <div class="login-features">
-                        <div class="login-feature">
+                    <div class="login-left-content">
+                        <div class="login-brand">
+                            <div class="brand-logo">
+                                <i class="fas fa-graduation-cap"></i>
+                            </div>
+                            <h2>VITNotes Hub</h2>
+                        </div>
+
+                        <div class="exclusive-badge">
                             <i class="fas fa-check-circle"></i>
                             <span>Exclusive for VIT Students</span>
                         </div>
-                        <div class="login-feature">
-                            <i class="fas fa-check-circle"></i>
-                            <span>Secure Authentication</span>
+
+                        <h1 class="login-headline">
+                            Learn. Share.<br>
+                            <span class="gradient-text">Grow Together.</span>
+                        </h1>
+
+                        <p class="login-description">
+                            VITNotes Hub is a premium platform for VIT students to upload, discover, and share high-quality academic notes.
+                        </p>
+
+                        <div class="login-features-list">
+                            <div class="login-feature-item">
+                                <div class="feature-icon-small">
+                                    <i class="fas fa-shield-alt"></i>
+                                </div>
+                                <div>
+                                    <strong>Secure & Exclusive</strong>
+                                    <p>Only @vitstudent.ac.in accounts can access</p>
+                                </div>
+                            </div>
+                            <div class="login-feature-item">
+                                <div class="feature-icon-small">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                </div>
+                                <div>
+                                    <strong>Upload & Share</strong>
+                                    <p>Upload your notes and help your peers</p>
+                                </div>
+                            </div>
+                            <div class="login-feature-item">
+                                <div class="feature-icon-small">
+                                    <i class="fas fa-search"></i>
+                                </div>
+                                <div>
+                                    <strong>Search & Discover</strong>
+                                    <p>Find the best notes for your subjects</p>
+                                </div>
+                            </div>
+                            <div class="login-feature-item">
+                                <div class="feature-icon-small">
+                                    <i class="fas fa-award"></i>
+                                </div>
+                                <div>
+                                    <strong>Earn Badges</strong>
+                                    <p>Get recognized for your contributions</p>
+                                </div>
+                            </div>
                         </div>
-                        <div class="login-feature">
-                            <i class="fas fa-check-circle"></i>
-                            <span>Free Access to All Notes</span>
+
+                        <div class="login-quote">
+                            <p>"Together we learn, together we succeed."</p>
                         </div>
                     </div>
 
-                    <div class="login-quote">
-                        <p>"Together we learn, together we succeed."</p>
-                    </div>
-
+                    <!-- Graduation Cap Illustration -->
                     <div class="login-illustration">
                         <i class="fas fa-graduation-cap"></i>
+                        <div class="book-illustration">
+                            <i class="fas fa-book-open"></i>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Right Side - Login Form -->
+                <!-- Right Side - Glass Card with Login -->
                 <div class="login-right">
-                    <div class="login-header">
-                        <div class="login-icon">
-                            <i class="fas fa-lock"></i>
+                    <div class="login-card">
+                        <div class="login-header">
+                            <div class="login-icon">
+                                <i class="fas fa-lock"></i>
+                            </div>
+                            <h2>Welcome Back!</h2>
+                            <p>Sign in to continue to VITNotes Hub</p>
                         </div>
-                        <h2>Welcome Back!</h2>
-                        <p>Sign in to continue to VITNotes Hub</p>
-                    </div>
 
-                    <button id="google-login-btn" class="btn-google-login">
-                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
-                        <span>Continue with Google</span>
-                    </button>
+                        <button id="google-login-btn" class="btn-google-login">
+                            <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+                            <span>Continue with Google</span>
+                        </button>
 
-                    <div class="login-divider">
-                        <span>OR</span>
-                    </div>
-
-                    <div class="login-info-box">
-                        <i class="fas fa-graduation-cap"></i>
-                        <div>
-                            <strong>Only VIT Students Allowed</strong>
-                            <p>Please use your @vitstudent.ac.in email address</p>
+                        <div class="login-divider">
+                            <span>OR</span>
                         </div>
-                        <i class="fas fa-shield-alt"></i>
-                    </div>
 
-                    <div class="login-badges">
-                        <div class="badge-item">
+                        <div class="login-info-box">
+                            <i class="fas fa-graduation-cap"></i>
+                            <div>
+                                <strong>Only VIT Students Allowed</strong>
+                                <p>Please use your @vitstudent.ac.in email address</p>
+                            </div>
                             <i class="fas fa-shield-alt"></i>
-                            <span>Secure<br>Authentication</span>
                         </div>
-                        <div class="badge-item">
-                            <i class="fas fa-users"></i>
-                            <span>Student<br>Community</span>
-                        </div>
-                        <div class="badge-item">
-                            <i class="fas fa-lock"></i>
-                            <span>Your Data<br>is Protected</span>
-                        </div>
-                    </div>
 
-                    <div class="login-footer">
-                        <p>Don't have access? Contact your <a href="#">administrator</a></p>
-                        <p class="copyright">© 2026 VITNotes Hub. All rights reserved.</p>
+                        <div class="login-badges">
+                            <div class="badge-item">
+                                <i class="fas fa-shield-alt"></i>
+                                <span>Secure<br>Authentication</span>
+                            </div>
+                            <div class="badge-item">
+                                <i class="fas fa-users"></i>
+                                <span>Student<br>Community</span>
+                            </div>
+                            <div class="badge-item">
+                                <i class="fas fa-lock"></i>
+                                <span>Your Data<br>is Protected</span>
+                            </div>
+                        </div>
+
+                        <div class="login-footer">
+                            <p>Don't have access? Contact your <a href="#">administrator</a></p>
+                            <p class="copyright">© 2026 VITNotes Hub. All rights reserved.</p>
+                        </div>
                     </div>
                 </div>
             </div>

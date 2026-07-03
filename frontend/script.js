@@ -1,3 +1,6 @@
+// Backend URL - CHANGE THIS to your actual Render backend URL
+const API_URL = 'https://vitnotes-hub-backend.onrender.com'; // Replace with your actual URL
+
 document.addEventListener('DOMContentLoaded', () => {
     // Generate particles
     createParticles();
@@ -12,17 +15,17 @@ document.addEventListener('DOMContentLoaded', () => {
             searchInput.disabled = false;
             searchBtn.disabled = false;
             searchHint.innerHTML = '<i class="fas fa-check-circle"></i> Signed in as ' + user.email;
-            searchHint.style.color = 'var(--success)';
+            searchHint.style.color = '#10b981';
         }
     });
 
-    // Fetch Announcements (only show if exists)
+    // Fetch Announcements (graceful fallback)
     fetchAnnouncements();
 
-    // Fetch Latest Notes
+    // Fetch Latest Notes (graceful fallback)
     fetchLatestNotes();
 
-    // Fetch Stats
+    // Fetch Stats (graceful fallback)
     fetchStats();
 
     // Close announcement
@@ -95,7 +98,7 @@ function createParticles() {
 
 async function fetchAnnouncements() {
     try {
-        const res = await fetch('https://your-render-backend-url.com/api/announcements/latest');
+        const res = await fetch(`${API_URL}/api/announcements/latest`);
         const data = await res.json();
         if (data && data.text) {
             const bar = document.getElementById('announcement-bar');
@@ -103,14 +106,14 @@ async function fetchAnnouncements() {
             bar.classList.remove('hidden');
         }
     } catch (err) { 
-        console.error('Error fetching announcements:', err);
-        // Don't show announcement bar if no data
+        console.log('Announcements: Backend not connected yet');
+        // Silently fail - no announcement bar shown
     }
 }
 
 async function fetchLatestNotes() {
     try {
-        const res = await fetch('https://your-render-backend-url.com/api/notes?limit=3');
+        const res = await fetch(`${API_URL}/api/notes?limit=3`);
         const data = await res.json();
         const grid = document.getElementById('latest-notes-grid');
         grid.innerHTML = '';
@@ -134,22 +137,33 @@ async function fetchLatestNotes() {
                 grid.appendChild(card);
             });
         } else {
-            grid.innerHTML = '<p style="text-align:center; grid-column:1/-1; color:var(--text-secondary);">No notes uploaded yet. Be the first!</p>';
+            grid.innerHTML = '<p style="text-align:center; grid-column:1/-1; color:var(--text-secondary); padding: 40px;">No notes uploaded yet. Be the first!</p>';
         }
     } catch (err) {
-        console.error('Error fetching notes:', err);
-        document.getElementById('latest-notes-grid').innerHTML = '<p style="text-align:center; grid-column:1/-1;">Failed to load notes.</p>';
+        console.log('Notes: Backend not connected yet');
+        document.getElementById('latest-notes-grid').innerHTML = `
+            <div class="empty-state">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <h3>No Notes Yet</h3>
+                <p>Sign in and upload the first notes!</p>
+            </div>
+        `;
     }
 }
 
 async function fetchStats() {
     try {
-        const res = await fetch('https://your-render-backend-url.com/api/stats/public');
+        const res = await fetch(`${API_URL}/api/stats/public`);
         const data = await res.json();
         document.getElementById('stat-users').innerText = data.users || 0;
         document.getElementById('stat-notes').innerText = data.notes || 0;
         document.getElementById('stat-downloads').innerText = data.downloads || 0;
-    } catch (err) { console.error('Error fetching stats:', err); }
+    } catch (err) { 
+        console.log('Stats: Backend not connected yet');
+        document.getElementById('stat-users').innerText = '0';
+        document.getElementById('stat-notes').innerText = '0';
+        document.getElementById('stat-downloads').innerText = '0';
+    }
 }
 
 function showToast(message, type = 'info') {

@@ -1,11 +1,11 @@
 /* ============================================================
-   VITNotes Hub - Frontend Logic
+   VITNotes Hub - Frontend Logic (FIXED)
    ============================================================ */
 
 // ---------- CONFIG ----------
 const CONFIG = {
-  API_URL: 'https://your-backend.onrender.com', // <-- REPLACE WITH YOUR RENDER URL
-  const firebaseConfig = {
+  API_URL: 'http://localhost:5000', // Change to your Render URL after deployment
+const firebaseConfig = {
   apiKey: "AIzaSyAeDQuBuxUKpOt_5VzuNdPsEpJYKmhPEKY",
   authDomain: "vit-note-hub.firebaseapp.com",
   projectId: "vit-note-hub",
@@ -14,20 +14,19 @@ const CONFIG = {
   appId: "1:337330202314:web:64b326c38fc41da959f633",
   measurementId: "G-LZ5CGW6BW8"
 };
+};
 
 // Initialize Firebase
 firebase.initializeApp(CONFIG.FIREBASE);
 const auth = firebase.auth();
+const googleProvider = new firebase.auth.GoogleAuthProvider();
 
 // ---------- STATE ----------
 const state = {
   user: null,
   idToken: null,
   currentPage: 1,
-  currentFilters: { sort: 'recent' },
-  pdfDoc: null,
-  pdfPage: 1,
-  pdfScale: 1.2
+  currentFilters: { sort: 'recent' }
 };
 
 // ---------- UTILITIES ----------
@@ -66,38 +65,53 @@ const formatBytes = (bytes) => {
   return `${(bytes / Math.pow(k, i)).toFixed(1)} ${sizes[i]}`;
 };
 
-const formatDate = (dateStr) => {
-  const d = new Date(dateStr);
-  const diff = (Date.now() - d) / 1000;
-  if (diff < 60) return 'just now';
-  if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
-  if (diff < 2592000) return `${Math.floor(diff / 86400)}d ago`;
-  return d.toLocaleDateString();
+// ---------- AUTH FUNCTIONS ----------
+const openSignup = () => {
+  console.log('Opening signup modal');
+  const modal = $('#signupModal');
+  if (modal) {
+    modal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+  } else {
+    console.error('Signup modal not found!');
+  }
 };
 
-// ---------- AUTH ----------
-const openSignup = () => $('#signupModal').classList.add('show');
-const closeSignup = () => $('#signupModal').classList.remove('show');
+const closeSignup = () => {
+  const modal = $('#signupModal');
+  if (modal) {
+    modal.classList.remove('show');
+    document.body.style.overflow = '';
+  }
+};
 
 const handleGoogleSignIn = async () => {
   const btn = $('#googleSignInBtn');
-  btn.disabled = true;
-  btn.innerHTML = '<span class="btn-loader"></span> Signing in...';
+  const originalText = btn.innerHTML;
+  
   try {
-    const provider = new firebase.auth.GoogleAuthProvider();
-    provider.setCustomParameters({ hd: 'vitstudent.ac.in' });
-    const result = await auth.signInWithPopup(provider);
+    btn.disabled = true;
+    btn.innerHTML = '<span class="btn-loader"></span> Signing in...';
+    
+    // Set custom parameter to hint VIT domain
+    googleProvider.setCustomParameters({
+      hd: 'vitstudent.ac.in'
+    });
+    
+    const result = await auth.signInWithPopup(googleProvider);
     const user = result.user;
     const email = user.email;
 
+    // Validate VIT email
     if (!email.endsWith('@vitstudent.ac.in')) {
-      toast('Only @vitstudent.ac.in emails allowed', 'error');
+      toast('❌ Only @vitstudent.ac.in emails are allowed', 'error');
       await auth.signOut();
       return;
     }
 
     const idToken = await user.getIdToken();
+    
+    // Register/Login with backend
     const res = await api('/api/auth/google', {
       method: 'POST',
       body: {
@@ -114,44 +128,50 @@ const handleGoogleSignIn = async () => {
 
     closeSignup();
     updateUI();
-    toast(`Welcome, ${res.user.name}!`, 'success');
+    toast(`✅ Welcome, ${res.user.name.split(' ')[0]}!`, 'success');
     loadNotes();
+    
   } catch (err) {
-    console.error(err);
-    toast(err.message || 'Sign in failed', 'error');
+    console.error('Sign in error:', err);
+    if (err.code === 'auth/popup-closed-by-user') {
+      toast('Sign-in cancelled', 'warning');
+    } else if (err.code === 'auth/unauthorized-domain') {
+      toast('Domain not authorized. Add this domain to Firebase Console.', 'error');
+    } else {
+      toast(err.message || 'Sign in failed', 'error');
+    }
   } finally {
     btn.disabled = false;
-    btn.innerHTML = `
-      <svg class="google-icon" viewBox="0 0 24 24" width="20" height="20">
-        <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-        <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-        <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-        <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-      </svg>
-      <span>Continue with Google</span>`;
+    btn.innerHTML = originalText;
   }
 };
 
 const logout = async () => {
-  await auth.signOut();
-  state.user = null;
-  state.idToken = null;
-  localStorage.removeItem('vitnotes_user');
-  updateUI();
-  toast('Logged out successfully', 'success');
+  try {
+    await auth.signOut();
+    state.user = null;
+    state.idToken = null;
+    localStorage.removeItem('vitnotes_user');
+    updateUI();
+    toast('Logged out successfully', 'success');
+    loadNotes();
+  } catch (err) {
+    toast('Logout failed', 'error');
+  }
 };
 
 const restoreSession = async () => {
   const saved = localStorage.getItem('vitnotes_user');
   if (!saved) return;
+  
   try {
-    state.user = JSON.parse(saved);
-    const currentUser = auth.currentUser;
-    if (currentUser) {
-      state.idToken = await currentUser.getIdToken();
+    const user = firebase.auth().currentUser;
+    if (user) {
+      state.user = JSON.parse(saved);
+      state.idToken = await user.getIdToken();
+      updateUI();
+      loadNotes();
     }
-    updateUI();
-    loadNotes();
   } catch (e) {
     localStorage.removeItem('vitnotes_user');
   }
@@ -159,48 +179,155 @@ const restoreSession = async () => {
 
 const updateUI = () => {
   const isAuth = !!state.user;
-  $('#loginBtn').style.display = isAuth ? 'none' : 'inline-flex';
-  $('#heroLoginBtn').style.display = isAuth ? 'none' : 'inline-flex';
-  $('#userMenu').style.display = isAuth ? 'block' : 'none';
-  $('#uploadLink').style.display = isAuth ? 'inline-block' : 'none';
-  $('#adminLink').style.display = (isAuth && state.user.role === 'admin') ? 'inline-block' : 'none';
+  
+  // Show/hide elements based on auth state
+  const loginBtns = $$('.login-trigger');
+  loginBtns.forEach(btn => {
+    btn.style.display = isAuth ? 'none' : 'inline-flex';
+  });
+  
+  const userMenu = $('#userMenu');
+  if (userMenu) {
+    userMenu.style.display = isAuth ? 'block' : 'none';
+  }
+  
+  const uploadLink = $('#uploadLink');
+  if (uploadLink) {
+    uploadLink.style.display = isAuth ? 'inline-block' : 'none';
+  }
+  
+  const adminLink = $('#adminLink');
+  if (adminLink) {
+    adminLink.style.display = (isAuth && state.user.role === 'admin') ? 'inline-block' : 'none';
+  }
 
   if (isAuth) {
-    $('#userName').textContent = state.user.name.split(' ')[0];
-    $('#userAvatar').src = state.user.profilePic || 'https://ui-avatars.com/api/?name=' + encodeURIComponent(state.user.name);
+    const userName = $('#userName');
+    const userAvatar = $('#userAvatar');
+    if (userName) userName.textContent = state.user.name.split(' ')[0];
+    if (userAvatar) userAvatar.src = state.user.profilePic || `https://ui-avatars.com/api/?name=${encodeURIComponent(state.user.name)}`;
   }
 };
 
-// ---------- NOTES ----------
+// ---------- UPLOAD FUNCTIONS ----------
+const openUploadModal = () => {
+  if (!state.user) {
+    openSignup();
+    return;
+  }
+  const modal = $('#uploadModal');
+  if (modal) {
+    modal.classList.add('show');
+    document.body.style.overflow = 'hidden';
+  }
+};
+
+const closeUploadModal = () => {
+  const modal = $('#uploadModal');
+  if (modal) {
+    modal.classList.remove('show');
+    document.body.style.overflow = '';
+    $('#uploadForm').reset();
+    $('#fileHint').textContent = 'PDF files only, max 50MB';
+    $('#fileDrop').classList.remove('has-file');
+  }
+};
+
+const handleFileSelect = (file) => {
+  if (!file) return;
+  
+  if (file.type !== 'application/pdf') {
+    toast('❌ Only PDF files are allowed', 'error');
+    return;
+  }
+  
+  if (file.size > 50 * 1024 * 1024) {
+    toast('❌ File size must be 50MB or less', 'error');
+    return;
+  }
+  
+  $('#fileDrop').classList.add('has-file');
+  $('#fileHint').textContent = `${file.name} (${formatBytes(file.size)})`;
+};
+
+const submitUpload = async (e) => {
+  e.preventDefault();
+  
+  const file = $('#notePdf').files[0];
+  if (!file) {
+    toast('Please select a PDF file', 'error');
+    return;
+  }
+
+  const formData = new FormData();
+  formData.append('pdf', file);
+  formData.append('title', $('#noteTitle').value);
+  formData.append('subject', $('#noteSubject').value);
+  formData.append('courseCode', $('#noteCourseCode').value);
+  formData.append('facultyName', $('#noteFaculty').value);
+  formData.append('semester', $('#noteSemester').value);
+  formData.append('term', $('#noteTerm').value); // Fall/Winter
+  formData.append('year', $('#noteYear').value);
+  formData.append('branch', $('#noteDepartment').value);
+  formData.append('description', $('#noteDesc').value);
+
+  const btn = $('#submitUpload');
+  const originalText = btn.innerHTML;
+  
+  try {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="btn-loader"></span> Uploading...';
+    
+    await api('/api/notes', {
+      method: 'POST',
+      body: formData
+    });
+    
+    toast('✅ Note uploaded successfully!', 'success');
+    closeUploadModal();
+    loadNotes();
+    
+  } catch (err) {
+    console.error('Upload error:', err);
+    toast(err.message || 'Upload failed', 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = originalText;
+  }
+};
+
+// ---------- NOTES FUNCTIONS ----------
 const loadNotes = async () => {
   const grid = $('#notesGrid');
-  grid.innerHTML = '<div class="empty-state"><div class="btn-loader" style="width:40px;height:40px;border-width:3px;margin:0 auto;border-color:var(--primary);border-top-color:transparent;"></div></div>';
-
-  const params = new URLSearchParams({
-    page: state.currentPage,
-    limit: 12,
-    ...state.currentFilters
-  });
+  if (!grid) return;
+  
+  grid.innerHTML = '<div class="empty-state"><div class="btn-loader" style="width:40px;height:40px;margin:0 auto;"></div><p style="text-align:center;margin-top:1rem;">Loading notes...</p></div>';
 
   try {
-    const res = await api(`/api/notes?${params}`);
-    renderNotes(res.notes);
-    renderPagination(res.pagination);
-    updateStats(res.pagination.total);
+    const res = await api('/api/notes');
+    renderNotes(res.notes || []);
   } catch (err) {
-    grid.innerHTML = `<div class="empty-state"><div class="empty-state-icon">⚠️</div><p>${err.message}</p></div>`;
+    console.error('Load notes error:', err);
+    grid.innerHTML = `<div class="empty-state"><p style="text-align:center;color:var(--danger);">Error: ${err.message}</p><p style="text-align:center;color:var(--text-muted);font-size:0.9rem;">Make sure backend is running</p></div>`;
   }
 };
 
 const renderNotes = (notes) => {
   const grid = $('#notesGrid');
+  if (!grid) return;
+  
   if (!notes || notes.length === 0) {
-    grid.innerHTML = `<div class="empty-state"><div class="empty-state-icon">📭</div><h3>No notes found</h3><p>Try adjusting your filters or be the first to upload!</p></div>`;
+    grid.innerHTML = `
+      <div class="empty-state" style="grid-column:1/-1;text-align:center;padding:3rem;">
+        <div style="font-size:4rem;margin-bottom:1rem;">📭</div>
+        <h3>No notes found</h3>
+        <p>Be the first to upload notes!</p>
+      </div>`;
     return;
   }
 
   grid.innerHTML = notes.map(note => `
-    <div class="note-card" data-id="${note._id}">
+    <div class="note-card">
       <div class="note-card-header">
         <span class="note-semester-badge">Sem ${note.semester}</span>
         <div class="note-subject">${escapeHtml(note.subject)}</div>
@@ -210,144 +337,18 @@ const renderNotes = (notes) => {
         <div class="note-meta">
           <span class="note-tag branch">${note.branch}</span>
           ${note.courseCode ? `<span class="note-tag">${note.courseCode}</span>` : ''}
+          ${note.term ? `<span class="note-tag">${note.term} ${note.year}</span>` : ''}
         </div>
-        ${note.description ? `<p class="note-desc">${escapeHtml(note.description).substring(0, 100)}${note.description.length > 100 ? '...' : ''}</p>` : ''}
+        ${note.facultyName ? `<p style="font-size:0.85rem;color:var(--text-muted);margin-bottom:0.5rem;">👨‍ ${escapeHtml(note.facultyName)}</p>` : ''}
       </div>
       <div class="note-card-footer">
         <span>${escapeHtml(note.uploaderName || 'Anonymous')}</span>
         <div class="note-stats">
-          <span class="note-stat">👁 ${note.views}</span>
-          <span class="note-stat">❤ ${note.likes}</span>
-          <span class="note-stat">${formatBytes(note.fileSize)}</span>
+          <span>👁 ${note.views || 0}</span>
         </div>
       </div>
     </div>
   `).join('');
-
-  $$('.note-card').forEach(card => {
-    card.addEventListener('click', () => openNote(card.dataset.id));
-  });
-};
-
-const renderPagination = ({ page, pages, total }) => {
-  const container = $('#pagination');
-  if (pages <= 1) { container.innerHTML = ''; return; }
-
-  let html = `<button class="page-btn" ${page === 1 ? 'disabled' : ''} data-page="${page - 1}">← Prev</button>`;
-  for (let i = 1; i <= pages; i++) {
-    if (i === 1 || i === pages || (i >= page - 1 && i <= page + 1)) {
-      html += `<button class="page-btn ${i === page ? 'active' : ''}" data-page="${i}">${i}</button>`;
-    } else if (i === page - 2 || i === page + 2) {
-      html += `<span style="padding:.5rem">...</span>`;
-    }
-  }
-  html += `<button class="page-btn" ${page === pages ? 'disabled' : ''} data-page="${page + 1}">Next →</button>`;
-  container.innerHTML = html;
-
-  $$('.page-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      if (btn.disabled) return;
-      state.currentPage = parseInt(btn.dataset.page);
-      loadNotes();
-      $('#browse').scrollIntoView({ behavior: 'smooth' });
-    });
-  });
-};
-
-const updateStats = (totalNotes) => {
-  $('#statNotes').textContent = totalNotes.toLocaleString();
-  $('#statUsers').textContent = '500+';
-  $('#statViews').textContent = '10K+';
-};
-
-const openNote = async (id) => {
-  try {
-    const res = await api(`/api/notes/${id}`);
-    const note = res.note;
-    $('#viewerTitle').textContent = note.title;
-    $('#viewerModal').classList.add('show');
-    await loadPdf(note.pdfUrl);
-    state.currentNote = note;
-  } catch (err) {
-    toast(err.message, 'error');
-  }
-};
-
-// ---------- PDF VIEWER ----------
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-
-const loadPdf = async (url) => {
-  try {
-    const loadingTask = pdfjsLib.getDocument(url);
-    state.pdfDoc = await loadingTask.promise;
-    state.pdfPage = 1;
-    renderPdfPage();
-  } catch (err) {
-    toast('Failed to load PDF', 'error');
-  }
-};
-
-const renderPdfPage = async () => {
-  if (!state.pdfDoc) return;
-  const page = await state.pdfDoc.getPage(state.pdfPage);
-  const viewport = page.getViewport({ scale: state.pdfScale });
-  const canvas = $('#pdfCanvas');
-  const ctx = canvas.getContext('2d');
-  canvas.height = viewport.height;
-  canvas.width = viewport.width;
-  await page.render({ canvasContext: ctx, viewport }).promise;
-  $('#pageInfo').textContent = `${state.pdfPage} / ${state.pdfDoc.numPages}`;
-};
-
-// ---------- UPLOAD ----------
-const handleFileSelect = (file) => {
-  if (!file) return;
-  if (file.type !== 'application/pdf') {
-    toast('Only PDF files allowed', 'error');
-    return;
-  }
-  if (file.size > 25 * 1024 * 1024) {
-    toast('File too large (max 25MB)', 'error');
-    return;
-  }
-  $('#fileDrop').classList.add('has-file');
-  $('#fileHint').textContent = `${file.name} (${formatBytes(file.size)})`;
-};
-
-const submitUpload = async (e) => {
-  e.preventDefault();
-  const btn = $('#submitUpload');
-  const file = $('#notePdf').files[0];
-  if (!file) return toast('Please select a PDF', 'error');
-
-  btn.disabled = true;
-  btn.querySelector('.btn-text').style.display = 'none';
-  btn.querySelector('.btn-loader').style.display = 'inline-block';
-
-  const formData = new FormData();
-  formData.append('pdf', file);
-  formData.append('title', $('#noteTitle').value);
-  formData.append('subject', $('#noteSubject').value);
-  formData.append('semester', $('#noteSemester').value);
-  formData.append('branch', $('#noteBranch').value);
-  formData.append('courseCode', $('#noteCode').value);
-  formData.append('description', $('#noteDesc').value);
-
-  try {
-    await api('/api/notes', { method: 'POST', body: formData });
-    toast('Note uploaded successfully!', 'success');
-    $('#uploadModal').classList.remove('show');
-    $('#uploadForm').reset();
-    $('#fileDrop').classList.remove('has-file');
-    $('#fileHint').textContent = 'PDF files only';
-    loadNotes();
-  } catch (err) {
-    toast(err.message, 'error');
-  } finally {
-    btn.disabled = false;
-    btn.querySelector('.btn-text').style.display = 'inline';
-    btn.querySelector('.btn-loader').style.display = 'none';
-  }
 };
 
 // ---------- HELPERS ----------
@@ -358,106 +359,127 @@ const escapeHtml = (str) => {
 
 // ---------- EVENT LISTENERS ----------
 document.addEventListener('DOMContentLoaded', () => {
-  // Auth
-  $('#loginBtn').addEventListener('click', openSignup);
-  $('#heroLoginBtn').addEventListener('click', openSignup);
-  $('#closeSignup').addEventListener('click', closeSignup);
-  $('#googleSignInBtn').addEventListener('click', handleGoogleSignIn);
-  $('#logoutBtn').addEventListener('click', logout);
-
-  // User dropdown
-  $('#userBtn').addEventListener('click', (e) => {
-    e.stopPropagation();
-    $('#userDropdown').classList.toggle('show');
+  console.log('DOM loaded, attaching event listeners...');
+  
+  // Auth listeners
+  auth.onAuthStateChanged((user) => {
+    console.log('Auth state changed:', user?.email);
   });
-  document.addEventListener('click', () => $('#userDropdown').classList.remove('show'));
-
-  // Mobile nav
-  $('#mobileToggle').addEventListener('click', () => {
-    $('.nav-links').classList.toggle('show');
-  });
-
-  // Upload modal
-  $('#uploadLink').addEventListener('click', (e) => {
-    e.preventDefault();
-    if (!state.user) return openSignup();
-    $('#uploadModal').classList.add('show');
-  });
-  $('#footerUpload').addEventListener('click', (e) => {
-    e.preventDefault();
-    if (!state.user) return openSignup();
-    $('#uploadModal').classList.add('show');
-  });
-  $('#closeUpload').addEventListener('click', () => $('#uploadModal').classList.remove('show'));
-
-  // File drop
-  const fileDrop = $('#fileDrop');
-  const fileInput = $('#notePdf');
-  fileDrop.addEventListener('click', () => fileInput.click());
-  fileInput.addEventListener('change', (e) => handleFileSelect(e.target.files[0]));
-  ['dragover', 'dragenter'].forEach(ev => fileDrop.addEventListener(ev, (e) => {
-    e.preventDefault(); fileDrop.classList.add('dragover');
-  }));
-  ['dragleave', 'drop'].forEach(ev => fileDrop.addEventListener(ev, (e) => {
-    e.preventDefault(); fileDrop.classList.remove('dragover');
-  }));
-  fileDrop.addEventListener('drop', (e) => handleFileSelect(e.dataTransfer.files[0]));
-
-  // Upload form
-  $('#uploadForm').addEventListener('submit', submitUpload);
-
-  // Filters
-  $('#searchBtn').addEventListener('click', () => {
-    state.currentFilters.search = $('#searchInput').value;
-    state.currentPage = 1;
-    loadNotes();
-  });
-  $('#searchInput').addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') $('#searchBtn').click();
-  });
-  ['semesterFilter', 'branchFilter', 'sortFilter'].forEach(id => {
-    $(`#${id}`).addEventListener('change', (e) => {
-      const key = id.replace('Filter', '');
-      state.currentFilters[key] = e.target.value;
-      state.currentPage = 1;
-      loadNotes();
+  
+  // Sign-in buttons
+  const loginTriggers = $$('.login-trigger');
+  loginTriggers.forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      console.log('Login trigger clicked');
+      openSignup();
     });
   });
-
-  // PDF viewer controls
-  $('#closeViewer').addEventListener('click', () => {
-    $('#viewerModal').classList.remove('show');
-    state.pdfDoc = null;
-  });
-  $('#prevPage').addEventListener('click', () => {
-    if (state.pdfPage > 1) { state.pdfPage--; renderPdfPage(); }
-  });
-  $('#nextPage').addEventListener('click', () => {
-    if (state.pdfDoc && state.pdfPage < state.pdfDoc.numPages) { state.pdfPage++; renderPdfPage(); }
-  });
-  $('#zoomIn').addEventListener('click', () => {
-    state.pdfScale = Math.min(3, state.pdfScale + 0.2); renderPdfPage();
-  });
-  $('#zoomOut').addEventListener('click', () => {
-    state.pdfScale = Math.max(0.5, state.pdfScale - 0.2); renderPdfPage();
-  });
-  $('#downloadPdf').addEventListener('click', () => {
-    if (state.currentNote) window.open(state.currentNote.pdfUrl, '_blank');
-  });
-
+  
+  // Google sign-in button
+  const googleBtn = $('#googleSignInBtn');
+  if (googleBtn) {
+    googleBtn.addEventListener('click', handleGoogleSignIn);
+    console.log('Google sign-in listener attached');
+  }
+  
+  // Close signup modal
+  const closeSignupBtn = $('#closeSignup');
+  if (closeSignupBtn) {
+    closeSignupBtn.addEventListener('click', closeSignup);
+  }
+  
+  // Upload modal triggers
+  const uploadTriggers = $('#uploadLink');
+  if (uploadTriggers) {
+    uploadTriggers.addEventListener('click', (e) => {
+      e.preventDefault();
+      openUploadModal();
+    });
+  }
+  
+  // Close upload modal
+  const closeUploadBtn = $('#closeUpload');
+  if (closeUploadBtn) {
+    closeUploadBtn.addEventListener('click', closeUploadModal);
+  }
+  
+  // Logout
+  const logoutBtn = $('#logoutBtn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', logout);
+  }
+  
+  // User dropdown
+  const userBtn = $('#userBtn');
+  const userDropdown = $('#userDropdown');
+  if (userBtn && userDropdown) {
+    userBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      userDropdown.classList.toggle('show');
+    });
+    document.addEventListener('click', () => userDropdown.classList.remove('show'));
+  }
+  
+  // File drop handling
+  const fileDrop = $('#fileDrop');
+  const fileInput = $('#notePdf');
+  
+  if (fileDrop && fileInput) {
+    fileDrop.addEventListener('click', () => fileInput.click());
+    
+    fileInput.addEventListener('change', (e) => {
+      handleFileSelect(e.target.files[0]);
+    });
+    
+    ['dragover', 'dragenter'].forEach(ev => {
+      fileDrop.addEventListener(ev, (e) => {
+        e.preventDefault();
+        fileDrop.classList.add('dragover');
+      });
+    });
+    
+    ['dragleave', 'drop'].forEach(ev => {
+      fileDrop.addEventListener(ev, (e) => {
+        e.preventDefault();
+        fileDrop.classList.remove('dragover');
+      });
+    });
+    
+    fileDrop.addEventListener('drop', (e) => {
+      handleFileSelect(e.dataTransfer.files[0]);
+    });
+  }
+  
+  // Upload form
+  const uploadForm = $('#uploadForm');
+  if (uploadForm) {
+    uploadForm.addEventListener('submit', submitUpload);
+  }
+  
   // Close modals on backdrop click
   $$('.modal').forEach(modal => {
     modal.addEventListener('click', (e) => {
-      if (e.target === modal) modal.classList.remove('show');
+      if (e.target === modal) {
+        modal.classList.remove('show');
+        document.body.style.overflow = '';
+      }
     });
   });
-
+  
   // ESC key closes modals
   document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') $$('.modal.show').forEach(m => m.classList.remove('show'));
+    if (e.key === 'Escape') {
+      $$('.modal.show').forEach(m => {
+        m.classList.remove('show');
+        document.body.style.overflow = '';
+      });
+    }
   });
-
-  // Restore session and load initial notes
+  
+  // Initialize
   restoreSession();
   loadNotes();
+  
+  console.log('All event listeners attached!');
 });

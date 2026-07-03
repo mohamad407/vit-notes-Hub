@@ -1,143 +1,84 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Dashboard - VITNotes Hub</title>
-  <link rel="stylesheet" href="admin.css" />
-  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - VITNotes Hub</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/admin.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-  <aside class="sidebar">
-    <div class="sidebar-header">
-      <h2>📚 VITNotes<span class="accent">Hub</span></h2>
-      <p>Admin Panel</p>
-    </div>
-    <nav class="sidebar-nav">
-      <a href="#" class="nav-item active" data-view="dashboard">📊 Dashboard</a>
-      <a href="#" class="nav-item" data-view="notes">📄 Manage Notes</a>
-      <a href="#" class="nav-item" data-view="users">👥 Users</a>
-      <a href="index.html" class="nav-item">🏠 Back to Site</a>
+    <div class="bg-animation"><div class="aurora"></div><div class="grid"></div></div>
+
+    <nav class="dashboard-nav glass">
+        <div class="nav-brand"><i class="fas fa-user-shield"></i> Admin Panel</div>
+        <div class="nav-actions">
+            <button id="admin-logout-btn" class="btn btn-outline ripple"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </div>
     </nav>
-    <div class="sidebar-footer">
-      <div class="admin-info" id="adminInfo">
-        <img id="adminAvatar" src="" alt="" />
-        <div>
-          <div id="adminName">Admin</div>
-          <div id="adminEmail">admin@vitstudent.ac.in</div>
-        </div>
-      </div>
-      <button class="btn-logout" id="logoutBtn">Logout</button>
-    </div>
-  </aside>
 
-  <main class="main">
-    <header class="topbar">
-      <h1 id="pageTitle">Dashboard</h1>
-      <div class="topbar-actions">
-        <span id="currentTime"></span>
-      </div>
-    </header>
+    <main class="admin-container">
+        <aside class="admin-sidebar glass">
+            <ul>
+                <li class="active" data-tab="overview"><i class="fas fa-chart-line"></i> Overview</li>
+                <li data-tab="users"><i class="fas fa-users"></i> Users</li>
+                <li data-tab="notes"><i class="fas fa-file-alt"></i> Notes Management</li>
+                <li data-tab="announcements"><i class="fas fa-bullhorn"></i> Announcements</li>
+            </ul>
+        </aside>
 
-    <!-- Dashboard View -->
-    <section class="view active" id="dashboardView">
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-icon">📄</div>
-          <div class="stat-info">
-            <div class="stat-value" id="totalNotes">0</div>
-            <div class="stat-label">Total Notes</div>
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon">👥</div>
-          <div class="stat-info">
-            <div class="stat-value" id="totalUsers">0</div>
-            <div class="stat-label">Total Users</div>
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon">⏳</div>
-          <div class="stat-info">
-            <div class="stat-value" id="pendingNotes">0</div>
-            <div class="stat-label">Pending Review</div>
-          </div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-icon">👁</div>
-          <div class="stat-info">
-            <div class="stat-value" id="totalViews">0</div>
-            <div class="stat-label">Total Views</div>
-          </div>
-        </div>
-      </div>
+        <section class="admin-content">
+            <!-- Overview Tab -->
+            <div id="admin-overview" class="tab-content active">
+                <h2>Dashboard Overview</h2>
+                <div class="stats-grid">
+                    <div class="stat-card glass"><i class="fas fa-users"></i><h3 id="admin-total-users">0</h3><p>Total Users</p></div>
+                    <div class="stat-card glass"><i class="fas fa-file-pdf"></i><h3 id="admin-total-notes">0</h3><p>Total Notes</p></div>
+                    <div class="stat-card glass"><i class="fas fa-download"></i><h3 id="admin-total-downloads">0</h3><p>Total Downloads</p></div>
+                </div>
+            </div>
 
-      <div class="panel">
-        <h3>Recent Uploads</h3>
-        <div class="table-wrap">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>Title</th><th>Subject</th><th>Branch</th><th>Uploader</th><th>Views</th><th>Date</th>
-              </tr>
-            </thead>
-            <tbody id="recentNotesBody"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
+            <!-- Users Tab -->
+            <div id="admin-users" class="tab-content">
+                <h2>All Users</h2>
+                <div class="table-container glass">
+                    <table>
+                        <thead><tr><th>Name</th><th>Email</th><th>Uploads</th><th>Joined</th><th>Last Login</th></tr></thead>
+                        <tbody id="users-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
 
-    <!-- Notes View -->
-    <section class="view" id="notesView">
-      <div class="panel">
-        <div class="panel-header">
-          <h3>All Notes</h3>
-          <div class="panel-actions">
-            <select id="noteStatusFilter">
-              <option value="">All Status</option>
-              <option value="approved">Approved</option>
-              <option value="pending">Pending</option>
-              <option value="rejected">Rejected</option>
-            </select>
-          </div>
-        </div>
-        <div class="table-wrap">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>Title</th><th>Subject</th><th>Sem</th><th>Branch</th>
-                <th>Uploader</th><th>Views</th><th>Status</th><th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="notesTableBody"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
+            <!-- Notes Tab -->
+            <div id="admin-notes" class="tab-content">
+                <h2>Notes Management</h2>
+                <div class="table-container glass">
+                    <table>
+                        <thead><tr><th>Course</th><th>Faculty</th><th>Uploaded By</th><th>Date</th><th>Actions</th></tr></thead>
+                        <tbody id="notes-table-body"></tbody>
+                    </table>
+                </div>
+            </div>
 
-    <!-- Users View -->
-    <section class="view" id="usersView">
-      <div class="panel">
-        <div class="panel-header">
-          <h3>All Users</h3>
-        </div>
-        <div class="table-wrap">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>Name</th><th>Email</th><th>Role</th><th>Notes</th><th>Joined</th><th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="usersTableBody"></tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-  </main>
+            <!-- Announcements Tab -->
+            <div id="admin-announcements" class="tab-content">
+                <h2>Manage Announcements</h2>
+                <form id="announcement-form" class="glass">
+                    <input type="text" id="announcement-input" placeholder="Type a new announcement..." required>
+                    <button type="submit" class="btn btn-primary">Publish</button>
+                </form>
+                <div class="announcements-list" id="admin-announcements-list"></div>
+            </div>
+        </section>
+    </main>
 
-  <div class="toast-container" id="toastContainer"></div>
+    <div id="toast-container"></div>
 
-  <script src="admin.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="js/firebase.js"></script>
+    <script src="js/admin.js"></script>
 </body>
 </html>

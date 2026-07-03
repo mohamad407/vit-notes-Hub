@@ -1,4 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
+    // Generate particles
+    createParticles();
+    
     // Check auth state to enable search
     firebase.auth().onAuthStateChanged((user) => {
         const searchInput = document.getElementById('hero-search');
@@ -8,12 +11,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (user) {
             searchInput.disabled = false;
             searchBtn.disabled = false;
-            searchHint.style.display = 'none';
-            searchInput.placeholder = "Search for courses, faculty, or subjects...";
+            searchHint.innerHTML = '<i class="fas fa-check-circle"></i> Signed in as ' + user.email;
+            searchHint.style.color = 'var(--success)';
         }
     });
 
-    // Fetch Announcements
+    // Fetch Announcements (only show if exists)
     fetchAnnouncements();
 
     // Fetch Latest Notes
@@ -29,7 +32,66 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('announcement-bar').classList.add('hidden');
         });
     }
+
+    // Login Modal
+    const loginBtn = document.getElementById('login-btn');
+    const loginModal = document.getElementById('login-modal');
+    const closeModal = document.getElementById('close-modal');
+    const googleLoginBtn = document.getElementById('google-login-btn');
+
+    if (loginBtn) {
+        loginBtn.addEventListener('click', () => {
+            loginModal.classList.remove('hidden');
+        });
+    }
+
+    if (closeModal) {
+        closeModal.addEventListener('click', () => {
+            loginModal.classList.add('hidden');
+        });
+    }
+
+    if (googleLoginBtn) {
+        googleLoginBtn.addEventListener('click', () => {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            provider.setCustomParameters({
+                hd: 'vitstudent.ac.in',
+                prompt: 'select_account'
+            });
+            
+            firebase.auth().signInWithPopup(provider).catch((error) => {
+                if (error.code !== 'auth/popup-closed-by-user') {
+                    showToast('Login failed. Please ensure you are using a VIT email.', 'error');
+                }
+            });
+        });
+    }
+
+    // Close modal on overlay click
+    if (loginModal) {
+        loginModal.addEventListener('click', (e) => {
+            if (e.target === loginModal) {
+                loginModal.classList.add('hidden');
+            }
+        });
+    }
 });
+
+// Create floating particles
+function createParticles() {
+    const particlesContainer = document.getElementById('particles');
+    if (!particlesContainer) return;
+
+    for (let i = 0; i < 30; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.left = Math.random() * 100 + '%';
+        particle.style.top = Math.random() * 100 + '%';
+        particle.style.animationDelay = Math.random() * 15 + 's';
+        particle.style.animationDuration = (Math.random() * 10 + 10) + 's';
+        particlesContainer.appendChild(particle);
+    }
+}
 
 async function fetchAnnouncements() {
     try {
@@ -40,7 +102,10 @@ async function fetchAnnouncements() {
             document.getElementById('announcement-text').innerText = data.text;
             bar.classList.remove('hidden');
         }
-    } catch (err) { console.error('Error fetching announcements:', err); }
+    } catch (err) { 
+        console.error('Error fetching announcements:', err);
+        // Don't show announcement bar if no data
+    }
 }
 
 async function fetchLatestNotes() {
@@ -51,20 +116,22 @@ async function fetchLatestNotes() {
         grid.innerHTML = '';
         
         if (data.notes && data.notes.length > 0) {
-            data.notes.forEach(note => {
-                grid.innerHTML += `
-                    <div class="note-card glass fade-in">
-                        <div class="note-card-header">
-                            <h4>${note.courseName}</h4>
-                            <span class="badge">${note.courseCode}</span>
-                        </div>
-                        <p><i class="fas fa-user"></i> ${note.facultyName}</p>
-                        <div class="note-card-footer">
-                            <span><i class="fas fa-folder"></i> ${note.department}</span>
-                            <span><i class="fas fa-download"></i> ${note.downloads || 0}</span>
-                        </div>
+            data.notes.forEach((note, index) => {
+                const card = document.createElement('div');
+                card.className = 'note-card glass fade-in';
+                card.style.animationDelay = `${index * 0.1}s`;
+                card.innerHTML = `
+                    <div class="note-card-header">
+                        <h4>${note.courseName}</h4>
+                        <span class="badge">${note.courseCode}</span>
+                    </div>
+                    <p><i class="fas fa-user"></i> ${note.facultyName}</p>
+                    <div class="note-card-footer">
+                        <span><i class="fas fa-folder"></i> ${note.department}</span>
+                        <span><i class="fas fa-download"></i> ${note.downloads || 0}</span>
                     </div>
                 `;
+                grid.appendChild(card);
             });
         } else {
             grid.innerHTML = '<p style="text-align:center; grid-column:1/-1; color:var(--text-secondary);">No notes uploaded yet. Be the first!</p>';
@@ -83,4 +150,13 @@ async function fetchStats() {
         document.getElementById('stat-notes').innerText = data.notes || 0;
         document.getElementById('stat-downloads').innerText = data.downloads || 0;
     } catch (err) { console.error('Error fetching stats:', err); }
+}
+
+function showToast(message, type = 'info') {
+    const container = document.getElementById('toast-container');
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i> ${message}`;
+    container.appendChild(toast);
+    setTimeout(() => toast.remove(), 4000);
 }

@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - VITNotes Hub</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="dashboard.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="bg-animation"><div class="aurora"></div><div class="grid"></div></div>
+
+    <!-- Top Navbar -->
+    <nav class="dashboard-nav glass">
+        <div class="nav-brand"><i class="fas fa-book-open"></i> VITNotes Hub</div>
+        <div class="nav-actions">
+            <div class="user-profile glass">
+                <img id="user-avatar" src="" alt="Avatar">
+                <span id="user-name">Student</span>
+            </div>
+            <button id="logout-btn" class="btn btn-outline ripple"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </div>
+    </nav>
+
+    <main class="dashboard-container">
+        <!-- Sidebar / Tabs -->
+        <aside class="sidebar glass">
+            <ul>
+                <li class="active" data-tab="browse"><i class="fas fa-compass"></i> Browse Notes</li>
+                <li data-tab="upload"><i class="fas fa-cloud-upload-alt"></i> Upload Notes</li>
+                <li data-tab="history"><i class="fas fa-history"></i> My Uploads</li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <section class="main-content">
+            <!-- Browse Tab -->
+            <div id="tab-browse" class="tab-content active">
+                <div class="content-header">
+                    <h2>Browse Notes</h2>
+                    <div class="search-box glass">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="search-input" placeholder="Search by course, faculty, or department...">
+                    </div>
+                </div>
+                <div class="filters glass">
+                    <select id="filter-semester"><option value="">All Semesters</option></select>
+                    <select id="filter-dept"><option value="">All Departments</option></select>
+                </div>
+                <div class="notes-grid" id="notes-grid"></div>
+                <div class="pagination glass" id="pagination"></div>
+            </div>
+
+            <!-- Upload Tab -->
+            <div id="tab-upload" class="tab-content">
+                <h2>Upload New Notes</h2>
+                <form id="upload-form" class="upload-form glass">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Course Code *</label>
+                            <input type="text" id="course-code" required placeholder="e.g., CSE1001">
+                        </div>
+                        <div class="form-group">
+                            <label>Course Name *</label>
+                            <input type="text" id="course-name" required placeholder="e.g., Problem Solving">
+                        </div>
+                        <div class="form-group">
+                            <label>Faculty Name *</label>
+                            <input type="text" id="faculty-name" required placeholder="e.g., Dr. John Doe">
+                        </div>
+                        <div class="form-group">
+                            <label>Department *</label>
+                            <select id="department" required>
+                                <option value="">Select Department</option>
+                                <option value="SCOPE">SCOPE</option>
+                                <option value="SAS">SAS</option>
+                                <option value="V-SIGN">V-SIGN</option>
+                                <option value="SENSE">SENSE</option>
+                                <option value="SBST">SBST</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Semester *</label>
+                            <select id="semester" required>
+                                <option value="">Select Semester</option>
+                                <option value="1">Semester 1</option>
+                                <option value="2">Semester 2</option>
+                                <option value="3">Semester 3</option>
+                                <option value="4">Semester 4</option>
+                                <option value="5">Semester 5</option>
+                                <option value="6">Semester 6</option>
+                                <option value="7">Semester 7</option>
+                                <option value="8">Semester 8</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Term *</label>
+                            <select id="term" required>
+                                <option value="Fall">Fall</option>
+                                <option value="Winter">Winter</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Academic Year *</label>
+                            <input type="text" id="academic-year" required placeholder="e.g., 2026">
+                        </div>
+                    </div>
+                    <div class="form-group full-width">
+                        <label>Description (Optional)</label>
+                        <textarea id="description" placeholder="Add any additional details..."></textarea>
+                    </div>
+                    <div class="form-group full-width">
+                        <label>PDF File * (Max 50MB)</label>
+                        <div class="file-dropzone glass" id="dropzone">
+                            <i class="fas fa-file-pdf"></i>
+                            <p>Drag & Drop your PDF here or <span class="link">click to browse</span></p>
+                            <input type="file" id="pdf-file" accept="application/pdf" hidden>
+                        </div>
+                        <div id="file-info" class="file-info hidden"></div>
+                        <div id="compression-status" class="compression-status hidden">
+                            <i class="fas fa-spinner fa-spin"></i> Compressing PDF...
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-large ripple" id="submit-btn">
+                        <i class="fas fa-upload"></i> Upload Notes
+                    </button>
+                </form>
+            </div>
+
+            <!-- History Tab -->
+            <div id="tab-history" class="tab-content">
+                <h2>My Upload History</h2>
+                <div class="notes-grid" id="history-grid"></div>
+            </div>
+        </section>
+    </main>
+
+    <!-- PDF Viewer Modal -->
+    <div id="pdf-modal" class="modal hidden">
+        <div class="modal-content glass">
+            <div class="modal-header">
+                <h3 id="pdf-title">Document Viewer</h3>
+                <button id="close-pdf-modal" class="btn-icon"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="pdf-viewer-container">
+                <canvas id="pdf-canvas"></canvas>
+            </div>
+            <div class="pdf-controls glass">
+                <button id="prev-page" class="btn-icon"><i class="fas fa-chevron-left"></i></button>
+                <span>Page <span id="page-num"></span> / <span id="page-count"></span></span>
+                <button id="next-page" class="btn-icon"><i class="fas fa-chevron-right"></i></button>
+                <div class="spacer"></div>
+                <button id="zoom-out" class="btn-icon"><i class="fas fa-search-minus"></i></button>
+                <button id="zoom-in" class="btn-icon"><i class="fas fa-search-plus"></i></button>
+                <button id="fullscreen" class="btn-icon"><i class="fas fa-expand"></i></button>
+                <button id="download-pdf" class="btn btn-primary"><i class="fas fa-download"></i> Download</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="firebase.js"></script>
+    <script src="pdfviewer.js"></script>
+    <script src="dashboard.js"></script>
+</body>
+</html>

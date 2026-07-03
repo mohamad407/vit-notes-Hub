@@ -4,15 +4,497 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - VITNotes Hub</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="dashboard.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #12121a;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+            --accent-primary: #6366f1;
+            --gradient-primary: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%);
+            --radius-md: 12px;
+            --radius-lg: 20px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+        
+        .hidden { display: none !important; }
+        
+        /* Background */
+        .bg-animation {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            z-index: -1;
+            background: var(--bg-primary);
+        }
+        
+        .aurora {
+            position: absolute;
+            width: 150%; height: 150%;
+            top: -25%; left: -25%;
+            background: radial-gradient(circle at 20% 30%, rgba(99, 102, 241, 0.15) 0%, transparent 40%);
+            animation: aurora-move 20s ease-in-out infinite;
+            filter: blur(80px);
+        }
+        
+        @keyframes aurora-move {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(5%, 5%); }
+        }
+        
+        .grid {
+            position: absolute;
+            width: 100%; height: 100%;
+            background-image: linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+                              linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+            background-size: 60px 60px;
+        }
+        
+        .glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+        }
+        
+        /* Navbar */
+        .dashboard-nav {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%;
+            padding: 18px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .nav-brand {
+            font-size: 1.5rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .brand-icon {
+            width: 40px; height: 40px;
+            background: var(--gradient-primary);
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .brand-icon i { color: white; font-size: 1.2rem; }
+        
+        .nav-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 8px 16px 8px 8px;
+        }
+        
+        .user-profile img {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            border: 2px solid var(--accent-primary);
+        }
+        
+        /* Dashboard Container */
+        .dashboard-container {
+            display: flex;
+            margin-top: 80px;
+            min-height: calc(100vh - 80px);
+            padding: 30px;
+            gap: 30px;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            padding: 30px;
+            height: fit-content;
+            position: sticky;
+            top: 100px;
+        }
+        
+        .sidebar ul {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .sidebar li {
+            padding: 16px 20px;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        
+        .sidebar li:hover,
+        .sidebar li.active {
+            background: rgba(99, 102, 241, 0.1);
+            color: var(--text-primary);
+            transform: translateX(5px);
+        }
+        
+        .sidebar li i {
+            font-size: 1.2rem;
+            width: 24px;
+        }
+        
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            padding: 20px;
+        }
+        
+        .tab-content {
+            display: none;
+            animation: fade-in 0.5s;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        @keyframes fade-in {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+        
+        .content-header h2 {
+            font-size: 2rem;
+            font-weight: 800;
+        }
+        
+        .search-box {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 20px;
+            width: 400px;
+        }
+        
+        .search-box input {
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text-primary);
+            width: 100%;
+        }
+        
+        /* Upload Section */
+        .upload-header {
+            margin-bottom: 30px;
+        }
+        
+        .upload-header h2 {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .upload-header h2 i {
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .upload-header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+        
+        .upload-form {
+            padding: 40px;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 24px;
+            margin-bottom: 28px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+        
+        .form-group label {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+            padding: 14px 18px;
+            border-radius: var(--radius-md);
+            outline: none;
+            transition: var(--transition);
+            font-family: inherit;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            border-color: var(--accent-primary);
+        }
+        
+        .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        /* File Dropzone */
+        .file-dropzone {
+            border: 2px dashed var(--glass-border);
+            padding: 60px 40px;
+            text-align: center;
+            transition: var(--transition);
+            cursor: pointer;
+            border-radius: var(--radius-lg);
+        }
+        
+        .file-dropzone:hover,
+        .file-dropzone.dragover {
+            border-color: var(--accent-primary);
+            background: rgba(99, 102, 241, 0.05);
+        }
+        
+        .file-dropzone i {
+            font-size: 4rem;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 20px;
+            display: block;
+        }
+        
+        .file-dropzone p {
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+        }
+        
+        .file-dropzone .link {
+            color: var(--accent-primary);
+            text-decoration: underline;
+        }
+        
+        .file-info {
+            margin-top: 20px;
+            padding: 16px 20px;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: var(--radius-md);
+            color: #10b981;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: var(--radius-md);
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .btn-primary {
+            background: var(--gradient-primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(99, 102, 241, 0.4);
+        }
+        
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--glass-border);
+            color: var(--text-primary);
+        }
+        
+        .btn-large {
+            width: 100%;
+            padding: 18px;
+            font-size: 1.1rem;
+            justify-content: center;
+            margin-top: 30px;
+        }
+        
+        /* Quick Upload Button */
+        .quick-upload {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: var(--gradient-primary);
+            border: none;
+            color: white;
+            font-size: 1.8rem;
+            cursor: pointer;
+            box-shadow: 0 8px 30px rgba(99, 102, 241, 0.4);
+            transition: var(--transition);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .quick-upload:hover {
+            transform: scale(1.1) rotate(90deg);
+        }
+        
+        /* Notes Grid */
+        .notes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 28px;
+        }
+        
+        .note-card {
+            padding: 28px;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+        
+        .note-card:hover {
+            transform: translateY(-6px);
+            border-color: var(--accent-primary);
+        }
+        
+        .note-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+        
+        .note-card h4 {
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+        }
+        
+        .badge {
+            padding: 6px 14px;
+            background: rgba(99, 102, 241, 0.15);
+            color: var(--accent-primary);
+            border-radius: 20px;
+            font-size: 0.8rem;
+        }
+        
+        .note-card p {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+        }
+        
+        .note-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 20px;
+            border-top: 1px solid var(--glass-border);
+        }
+        
+        .note-card-footer span {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .dashboard-container {
+                flex-direction: column;
+                padding: 15px;
+            }
+            
+            .sidebar {
+                width: 100%;
+                position: static;
+            }
+            
+            .sidebar ul {
+                flex-direction: row;
+                overflow-x: auto;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .search-box {
+                width: 100%;
+            }
+            
+            .quick-upload {
+                bottom: 20px;
+                right: 20px;
+                width: 56px;
+                height: 56px;
+            }
+        }
+    </style>
 </head>
 <body>
-    <div class="bg-animation"><div class="aurora"></div><div class="grid"></div></div>
+    <div class="bg-animation">
+        <div class="aurora"></div>
+        <div class="grid"></div>
+    </div>
 
-    <!-- Top Navbar -->
+    <!-- Navbar -->
     <nav class="dashboard-nav glass">
         <div class="nav-brand">
             <div class="brand-icon">
@@ -25,7 +507,7 @@
                 <img id="user-avatar" src="" alt="Avatar">
                 <span id="user-name">Student</span>
             </div>
-            <button id="logout-btn" class="btn btn-outline ripple"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            <button id="logout-btn" class="btn btn-outline"><i class="fas fa-sign-out-alt"></i> Logout</button>
         </div>
     </nav>
 
@@ -47,18 +529,17 @@
                     <h2>Browse Notes</h2>
                     <div class="search-box glass">
                         <i class="fas fa-search"></i>
-                        <input type="text" id="search-input" placeholder="Search by course, faculty, or department...">
+                        <input type="text" id="search-input" placeholder="Search by course, faculty...">
                     </div>
                 </div>
-                <div class="filters glass">
-                    <select id="filter-semester"><option value="">All Semesters</option></select>
-                    <select id="filter-dept"><option value="">All Departments</option></select>
+                <div class="notes-grid" id="notes-grid">
+                    <p style="grid-column: 1/-1; text-align: center; color: var(--text-secondary);">
+                        <i class="fas fa-spinner fa-spin"></i> Loading notes...
+                    </p>
                 </div>
-                <div class="notes-grid" id="notes-grid"></div>
-                <div class="pagination glass" id="pagination"></div>
             </div>
 
-            <!-- Upload Tab - PROMINENT SECTION -->
+            <!-- Upload Tab -->
             <div id="tab-upload" class="tab-content">
                 <div class="upload-header">
                     <h2><i class="fas fa-cloud-upload-alt"></i> Upload Notes</h2>
@@ -85,9 +566,9 @@
                                 <option value="">Select Department</option>
                                 <option value="SCOPE">SCOPE</option>
                                 <option value="SAS">SAS</option>
-                                <option value="V-SIGN">V-SIGN</option>
                                 <option value="SENSE">SENSE</option>
                                 <option value="SBST">SBST</option>
+                                <option value="V-SIGN">V-SIGN</option>
                             </select>
                         </div>
                         <div class="form-group">
@@ -128,11 +609,8 @@
                             <input type="file" id="pdf-file" accept="application/pdf" hidden>
                         </div>
                         <div id="file-info" class="file-info hidden"></div>
-                        <div id="compression-status" class="compression-status hidden">
-                            <i class="fas fa-spinner fa-spin"></i> Compressing PDF...
-                        </div>
                     </div>
-                    <button type="submit" class="btn btn-primary btn-large ripple" id="submit-btn">
+                    <button type="submit" class="btn btn-primary btn-large">
                         <i class="fas fa-upload"></i> Upload Notes
                     </button>
                 </form>
@@ -141,47 +619,23 @@
             <!-- History Tab -->
             <div id="tab-history" class="tab-content">
                 <h2>My Upload History</h2>
-                <div class="notes-grid" id="history-grid"></div>
+                <div class="notes-grid" id="history-grid" style="margin-top: 30px;">
+                    <p style="grid-column: 1/-1; text-align: center; color: var(--text-secondary);">
+                        No uploads yet
+                    </p>
+                </div>
             </div>
         </section>
     </main>
 
-    <!-- PDF Viewer Modal -->
-    <div id="pdf-modal" class="modal hidden">
-        <div class="modal-overlay"></div>
-        <div class="modal-content glass">
-            <div class="modal-header">
-                <h3 id="pdf-title">Document Viewer</h3>
-                <button id="close-pdf-modal" class="btn-icon"><i class="fas fa-times"></i></button>
-            </div>
-            <div class="pdf-viewer-container">
-                <canvas id="pdf-canvas"></canvas>
-            </div>
-            <div class="pdf-controls glass">
-                <button id="prev-page" class="btn-icon"><i class="fas fa-chevron-left"></i></button>
-                <span>Page <span id="page-num"></span> / <span id="page-count"></span></span>
-                <button id="next-page" class="btn-icon"><i class="fas fa-chevron-right"></i></button>
-                <div class="spacer"></div>
-                <button id="zoom-out" class="btn-icon"><i class="fas fa-search-minus"></i></button>
-                <button id="zoom-in" class="btn-icon"><i class="fas fa-search-plus"></i></button>
-                <button id="fullscreen" class="btn-icon"><i class="fas fa-expand"></i></button>
-                <button id="download-pdf" class="btn btn-primary"><i class="fas fa-download"></i> Download</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Quick Upload Floating Button -->
+    <!-- Quick Upload Button -->
     <button class="quick-upload" id="quick-upload-btn" title="Quick Upload">
         <i class="fas fa-plus"></i>
     </button>
 
-    <div id="toast-container"></div>
-
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="firebase.js"></script>
-    <script src="pdfviewer.js"></script>
     <script src="dashboard.js"></script>
 </body>
 </html>

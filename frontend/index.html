@@ -5,28 +5,38 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VITNotes Hub - Exclusive Notes for VIT Students</title>
     <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
-    <!-- Animated Background -->
+    <!-- Animated Background with Particles -->
     <div class="bg-animation">
         <div class="aurora"></div>
+        <div class="aurora aurora-2"></div>
         <div class="grid"></div>
-        <div class="particles"></div>
+        <div class="particles" id="particles"></div>
+        <div class="floating-shapes">
+            <div class="shape shape-1"></div>
+            <div class="shape shape-2"></div>
+            <div class="shape shape-3"></div>
+        </div>
     </div>
 
-    <!-- Announcement Bar -->
+    <!-- Conditional Announcement Bar -->
     <div id="announcement-bar" class="announcement-bar hidden">
-        <i class="fas fa-bullhorn"></i>
-        <span id="announcement-text"></span>
-        <button id="close-announcement"><i class="fas fa-times"></i></button>
+        <div class="announcement-content">
+            <i class="fas fa-bullhorn announcement-icon"></i>
+            <span id="announcement-text"></span>
+        </div>
+        <button id="close-announcement" class="close-btn"><i class="fas fa-times"></i></button>
     </div>
 
     <!-- Navbar -->
     <nav class="navbar glass">
         <div class="nav-brand">
-            <i class="fas fa-book-open"></i>
+            <div class="brand-icon">
+                <i class="fas fa-book-open"></i>
+            </div>
             <span>VITNotes Hub</span>
         </div>
         <div class="nav-links">
@@ -42,14 +52,21 @@
     <!-- Hero Section -->
     <section class="hero">
         <div class="hero-content fade-in">
-            <h1>The Ultimate Notes Platform for <span class="gradient-text">VIT Students</span></h1>
-            <p>Share, discover, and excel. Access premium study materials curated by your peers.</p>
+            <div class="hero-badge">
+                <i class="fas fa-sparkles"></i>
+                <span>Exclusive for VIT Students</span>
+            </div>
+            <h1>Learn. Share.<br><span class="gradient-text">Grow Together.</span></h1>
+            <p class="hero-subtitle">VITNotes Hub is a premium platform for VIT students to upload, discover, and share high-quality academic notes.</p>
+            
             <div class="search-container glass">
                 <i class="fas fa-search"></i>
                 <input type="text" id="hero-search" placeholder="Search for courses, faculty, or subjects..." disabled>
                 <button class="btn btn-secondary" disabled>Search</button>
             </div>
-            <p class="search-hint" id="search-hint">Please sign in to search notes</p>
+            <p class="search-hint" id="search-hint">
+                <i class="fas fa-lock"></i> Please sign in to search notes
+            </p>
         </div>
     </section>
 
@@ -58,19 +75,32 @@
         <h2 class="section-title">Why VITNotes Hub?</h2>
         <div class="features-grid">
             <div class="feature-card glass fade-in">
-                <div class="feature-icon"><i class="fas fa-shield-alt"></i></div>
-                <h3>Exclusive Access</h3>
-                <p>Only verified VIT students can access and contribute to the platform.</p>
+                <div class="feature-icon-wrapper">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h3>Secure & Exclusive</h3>
+                <p>Only @vitstudent.ac.in accounts can access the platform.</p>
             </div>
             <div class="feature-card glass fade-in">
-                <div class="feature-icon"><i class="fas fa-bolt"></i></div>
-                <h3>Lightning Fast</h3>
-                <p>Optimized for speed with instant search and seamless PDF viewing.</p>
+                <div class="feature-icon-wrapper">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                </div>
+                <h3>Upload & Share</h3>
+                <p>Upload your notes and help your peers excel.</p>
             </div>
             <div class="feature-card glass fade-in">
-                <div class="feature-icon"><i class="fas fa-cloud-upload-alt"></i></div>
-                <h3>Easy Uploads</h3>
-                <p>Share your notes in seconds with our intuitive upload system.</p>
+                <div class="feature-icon-wrapper">
+                    <i class="fas fa-search"></i>
+                </div>
+                <h3>Search & Discover</h3>
+                <p>Find the best notes for your subjects instantly.</p>
+            </div>
+            <div class="feature-card glass fade-in">
+                <div class="feature-icon-wrapper">
+                    <i class="fas fa-award"></i>
+                </div>
+                <h3>Earn Badges</h3>
+                <p>Get recognized for your contributions.</p>
             </div>
         </div>
     </section>
@@ -90,14 +120,17 @@
         <h2 class="section-title">Platform Statistics</h2>
         <div class="stats-grid">
             <div class="stat-card glass fade-in">
+                <i class="fas fa-users"></i>
                 <h3 id="stat-users">0</h3>
                 <p>Active Students</p>
             </div>
             <div class="stat-card glass fade-in">
+                <i class="fas fa-file-pdf"></i>
                 <h3 id="stat-notes">0</h3>
                 <p>Shared Notes</p>
             </div>
             <div class="stat-card glass fade-in">
+                <i class="fas fa-download"></i>
                 <h3 id="stat-downloads">0</h3>
                 <p>Total Downloads</p>
             </div>
@@ -108,6 +141,98 @@
     <footer class="footer glass">
         <p>&copy; 2026 VITNotes Hub. Built with ❤️ for VIT Students.</p>
     </footer>
+
+    <!-- Login Modal -->
+    <div id="login-modal" class="modal hidden">
+        <div class="modal-overlay"></div>
+        <div class="login-modal-content">
+            <button class="modal-close" id="close-modal"><i class="fas fa-times"></i></button>
+            
+            <div class="login-container">
+                <!-- Left Side - Branding -->
+                <div class="login-left">
+                    <div class="login-brand">
+                        <div class="brand-logo">
+                            <i class="fas fa-book-open"></i>
+                        </div>
+                        <h2>VITNotes Hub</h2>
+                    </div>
+                    
+                    <div class="login-features">
+                        <div class="login-feature">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Exclusive for VIT Students</span>
+                        </div>
+                        <div class="login-feature">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Secure Authentication</span>
+                        </div>
+                        <div class="login-feature">
+                            <i class="fas fa-check-circle"></i>
+                            <span>Free Access to All Notes</span>
+                        </div>
+                    </div>
+
+                    <div class="login-quote">
+                        <p>"Together we learn, together we succeed."</p>
+                    </div>
+
+                    <div class="login-illustration">
+                        <i class="fas fa-graduation-cap"></i>
+                    </div>
+                </div>
+
+                <!-- Right Side - Login Form -->
+                <div class="login-right">
+                    <div class="login-header">
+                        <div class="login-icon">
+                            <i class="fas fa-lock"></i>
+                        </div>
+                        <h2>Welcome Back!</h2>
+                        <p>Sign in to continue to VITNotes Hub</p>
+                    </div>
+
+                    <button id="google-login-btn" class="btn-google-login">
+                        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+                        <span>Continue with Google</span>
+                    </button>
+
+                    <div class="login-divider">
+                        <span>OR</span>
+                    </div>
+
+                    <div class="login-info-box">
+                        <i class="fas fa-graduation-cap"></i>
+                        <div>
+                            <strong>Only VIT Students Allowed</strong>
+                            <p>Please use your @vitstudent.ac.in email address</p>
+                        </div>
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+
+                    <div class="login-badges">
+                        <div class="badge-item">
+                            <i class="fas fa-shield-alt"></i>
+                            <span>Secure<br>Authentication</span>
+                        </div>
+                        <div class="badge-item">
+                            <i class="fas fa-users"></i>
+                            <span>Student<br>Community</span>
+                        </div>
+                        <div class="badge-item">
+                            <i class="fas fa-lock"></i>
+                            <span>Your Data<br>is Protected</span>
+                        </div>
+                    </div>
+
+                    <div class="login-footer">
+                        <p>Don't have access? Contact your <a href="#">administrator</a></p>
+                        <p class="copyright">© 2026 VITNotes Hub. All rights reserved.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Toast Container -->
     <div id="toast-container"></div>

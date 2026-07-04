@@ -1,7 +1,7 @@
 const Note = require('../models/note');
 const User = require('../models/user');
 const { uploadPDF, deletePDF } = require('../config/cloudinary');
-   const { compressPDF, validatePDF } = require('../utils/pdfcompressor');
+const { compressPDF, validatePDF } = require('../utils/pdfcompressor');
 
 // Upload a new note
 const uploadNote = async (req, res, next) => {

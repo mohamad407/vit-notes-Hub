@@ -1,5 +1,3 @@
-const API_URL = 'https://vit-notes-hub.onrender.com';
-
 document.addEventListener('DOMContentLoaded', () => {
     const user = JSON.parse(localStorage.getItem('user_data'));
     if (!user) return;
@@ -25,6 +23,17 @@ document.addEventListener('DOMContentLoaded', () => {
     loadNotes();
     setupUploadForm();
     setupSearch();
+
+    // Quick Upload Button
+    const quickUploadBtn = document.getElementById('quick-upload-btn');
+    if (quickUploadBtn) {
+        quickUploadBtn.addEventListener('click', () => {
+            document.querySelectorAll('.sidebar li').forEach(l => l.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelector('[data-tab="upload"]').classList.add('active');
+            document.getElementById('tab-upload').classList.add('active');
+        });
+    }
 });
 
 // --- Browse & Search ---
@@ -42,6 +51,7 @@ async function loadNotes(query = '') {
     grid.innerHTML = '<div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div>';
     
     try {
+        const API_URL = 'https://vit-notes-hub.onrender.com';
         const token = localStorage.getItem('vit_token');
         const res = await fetch(`${API_URL}/api/notes?page=${currentPage}&limit=9&search=${query}`, {
             headers: { 'Authorization': `Bearer ${token}` }
@@ -78,6 +88,7 @@ async function loadHistory() {
     const grid = document.getElementById('history-grid');
     grid.innerHTML = '<div class="skeleton-card"></div>';
     try {
+        const API_URL = 'https://vit-notes-hub.onrender.com';
         const token = localStorage.getItem('vit_token');
         const res = await fetch(`${API_URL}/api/notes/my-uploads`, {
             headers: { 'Authorization': `Bearer ${token}` }
@@ -182,6 +193,7 @@ function setupUploadForm() {
         formData.append('description', document.getElementById('description').value);
 
         try {
+            const API_URL = 'https://vit-notes-hub.onrender.com';
             const token = localStorage.getItem('vit_token');
             const res = await fetch(`${API_URL}/api/notes/upload`, {
                 method: 'POST',
@@ -220,3 +232,15 @@ async function mockCompressPDF(file) {
 window.openPDF = function(id, url, title) {
     initPDFViewer(url, title);
 };
+
+function showToast(message, type = 'info') {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+    
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    const icon = type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle';
+    toast.innerHTML = `<i class="fas fa-${icon}"></i> ${message}`;
+    container.appendChild(toast);
+    setTimeout(() => toast.remove(), 4000);
+}

@@ -1,5 +1,5 @@
 // Backend URL - CHANGE THIS to your actual Render backend URL
-const API_URL = 'https://vitnotes-hub-backend.onrender.com'; // Replace with your actual URL
+const API_URL = 'https://vit-notes-hub.onrender.com';
 
 document.addEventListener('DOMContentLoaded', () => {
     // Generate particles

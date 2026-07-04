@@ -1,4 +1,6 @@
-// Firebase Configuration (Replace with your actual config)
+// Firebase Configuration
+
+// Initialize Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyAeDQuBuxUKpOt_5VzuNdPsEpJYKmhPEKY",
   authDomain: "vit-note-hub.firebaseapp.com",
@@ -12,7 +14,10 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 
-// Force Google to show account chooser and restrict to VIT domain
+// Backend URL
+const API_URL = 'https://vit-notes-hub.onrender.com';
+
+// Google Auth Provider
 const provider = new firebase.auth.GoogleAuthProvider();
 provider.setCustomParameters({
     hd: 'vitstudent.ac.in',
@@ -22,9 +27,12 @@ provider.setCustomParameters({
 // Utility: Show Toast
 function showToast(message, type = 'info') {
     const container = document.getElementById('toast-container');
+    if (!container) return;
+    
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    toast.innerHTML = `<i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle'}"></i> ${message}`;
+    const icon = type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-circle' : 'info-circle';
+    toast.innerHTML = `<i class="fas fa-${icon}"></i> ${message}`;
     container.appendChild(toast);
     setTimeout(() => toast.remove(), 4000);
 }
@@ -32,7 +40,7 @@ function showToast(message, type = 'info') {
 // Auth State Observer
 auth.onAuthStateChanged(async (user) => {
     if (user) {
-        // Verify domain again on client side just in case
+        // Verify domain
         if (!user.email.endsWith('@vitstudent.ac.in')) {
             showToast('Only VIT students can access VITNotes Hub.', 'error');
             auth.signOut();
@@ -43,26 +51,35 @@ auth.onAuthStateChanged(async (user) => {
             // Get ID Token
             const idToken = await user.getIdToken();
             
-            // Send to backend for verification and session creation
-            const response = await fetch('https://your-render-backend-url.com/api/auth/login', {
+            // Send to backend for verification
+            const response = await fetch(`${API_URL}/api/auth/login`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}` }
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${idToken}` 
+                }
             });
 
-            if (!response.ok) throw new Error('Backend authentication failed');
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Backend authentication failed');
+            }
             
             const data = await response.json();
             
-            // Store session token
+            // Store session token and user data
             localStorage.setItem('vit_token', data.token);
             localStorage.setItem('user_data', JSON.stringify(data.user));
 
             // Redirect based on role
+            const currentPath = window.location.pathname;
+            
             if (data.user.role === 'admin') {
-                window.location.href = 'admin.html';
+                if (!currentPath.includes('admin.html')) {
+                    window.location.href = 'admin.html';
+                }
             } else {
-                // If on login page, redirect to dashboard
-                if (window.location.pathname.endsWith('index.html') || window.location.pathname === '/') {
+                if (currentPath.endsWith('index.html') || currentPath === '/' || currentPath.endsWith('/')) {
                     window.location.href = 'dashboard.html';
                 }
             }
@@ -86,11 +103,12 @@ auth.onAuthStateChanged(async (user) => {
 
 // Login Handler
 document.addEventListener('DOMContentLoaded', () => {
-    const loginBtn = document.getElementById('login-btn');
+    const loginBtn = document.getElementById('google-login-btn') || document.getElementById('login-btn');
     if (loginBtn) {
         loginBtn.addEventListener('click', () => {
             auth.signInWithPopup(provider).catch((error) => {
                 if (error.code !== 'auth/popup-closed-by-user') {
+                    console.error('Login error:', error);
                     showToast('Login failed. Please ensure you are using a VIT email.', 'error');
                 }
             });

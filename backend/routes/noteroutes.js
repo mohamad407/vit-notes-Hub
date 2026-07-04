@@ -9,7 +9,7 @@ const {
     getNoteById,
     downloadNote,
     deleteNote
-} = require('../controllers/noteController');
+} = require('../controllers/notecontroller');
 
 // Public routes
 router.get('/', getNotes);

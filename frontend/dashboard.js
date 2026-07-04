@@ -1,3 +1,5 @@
+const API_URL = 'https://vit-notes-hub.onrender.com';
+
 document.addEventListener('DOMContentLoaded', () => {
     const user = JSON.parse(localStorage.getItem('user_data'));
     if (!user) return;
@@ -41,7 +43,7 @@ async function loadNotes(query = '') {
     
     try {
         const token = localStorage.getItem('vit_token');
-        const res = await fetch(`https://your-render-backend-url.com/api/notes?page=${currentPage}&limit=9&search=${query}`, {
+        const res = await fetch(`${API_URL}/api/notes?page=${currentPage}&limit=9&search=${query}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await res.json();
@@ -77,7 +79,7 @@ async function loadHistory() {
     grid.innerHTML = '<div class="skeleton-card"></div>';
     try {
         const token = localStorage.getItem('vit_token');
-        const res = await fetch(`https://your-render-backend-url.com/api/notes/my-uploads`, {
+        const res = await fetch(`${API_URL}/api/notes/my-uploads`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await res.json();
@@ -150,8 +152,6 @@ function setupUploadForm() {
         if (selectedFile.size > 50 * 1024 * 1024) {
             compressionStatus.classList.remove('hidden');
             try {
-                // Note: Real client-side PDF compression requires heavy libraries like pdf-lib or WASM.
-                // Here we simulate the process. In production, send to a backend compression endpoint.
                 fileToUpload = await mockCompressPDF(selectedFile);
                 
                 if (fileToUpload.size > 50 * 1024 * 1024) {
@@ -183,7 +183,7 @@ function setupUploadForm() {
 
         try {
             const token = localStorage.getItem('vit_token');
-            const res = await fetch('https://your-render-backend-url.com/api/notes/upload', {
+            const res = await fetch(`${API_URL}/api/notes/upload`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` },
                 body: formData
@@ -211,8 +211,6 @@ function setupUploadForm() {
 async function mockCompressPDF(file) {
     return new Promise(resolve => {
         setTimeout(() => {
-            // In a real scenario, use a library to optimize the PDF.
-            // For now, we just return the original file to simulate the process.
             resolve(file);
         }, 2000);
     });

@@ -1,5 +1,5 @@
-const User = require('../models/User');
-const Admin = require('../models/Admin');
+const User = require('../models/user');
+const Admin = require('../models/admin');
 
 // Login/Register user
 const loginUser = async (req, res) => {

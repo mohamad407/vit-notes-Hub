@@ -1,6 +1,6 @@
-const User = require('../models/User');
-const Note = require('../models/Note');
-const Announcement = require('../models/Announcement');
+const User = require('../models/user');
+const Note = require('../models/note');
+const Announcement = require('../models/announcement');
 
 // Get admin stats
 const getStats = async (req, res, next) => {

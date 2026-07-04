@@ -6,7 +6,7 @@ const {
     getAllUsers,
     getAllNotes,
     adminDeleteNote
-} = require('../controllers/adminController');
+} = require('../controllers/admincontroller');
 
 // All admin routes require auth + admin role
 router.use(verifyToken, isAdmin);

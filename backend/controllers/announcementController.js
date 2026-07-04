@@ -1,4 +1,4 @@
-const Announcement = require('../models/Announcement');
+const Announcement = require('../models/announcement');
 
 // Get latest active announcement (public)
 const getLatestAnnouncement = async (req, res, next) => {

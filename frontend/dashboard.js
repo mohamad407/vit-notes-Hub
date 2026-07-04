@@ -16,13 +16,12 @@ document.addEventListener('DOMContentLoaded', () => {
             
             if (li.dataset.tab === 'history') loadHistory();
             if (li.dataset.tab === 'browse') loadNotes();
+            if (li.dataset.tab === 'upload') setupUploadForm();
         });
     });
 
     // Initial Load
     loadNotes();
-    setupUploadForm();
-    setupSearch();
 
     // Quick Upload Button
     const quickUploadBtn = document.getElementById('quick-upload-btn');
@@ -32,6 +31,7 @@ document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.querySelector('[data-tab="upload"]').classList.add('active');
             document.getElementById('tab-upload').classList.add('active');
+            setupUploadForm();
         });
     }
 });
@@ -42,12 +42,15 @@ const debounce = (func, delay) => { let timer; return (...args) => { clearTimeou
 
 function setupSearch() {
     const searchInput = document.getElementById('search-input');
+    if (!searchInput) return;
     const debouncedSearch = debounce((val) => { currentPage = 1; loadNotes(val); }, 500);
     searchInput.addEventListener('input', (e) => debouncedSearch(e.target.value));
 }
 
 async function loadNotes(query = '') {
     const grid = document.getElementById('notes-grid');
+    if (!grid) return;
+    
     grid.innerHTML = '<div class="skeleton-card"></div><div class="skeleton-card"></div><div class="skeleton-card"></div>';
     
     try {
@@ -86,6 +89,8 @@ async function loadNotes(query = '') {
 
 async function loadHistory() {
     const grid = document.getElementById('history-grid');
+    if (!grid) return;
+    
     grid.innerHTML = '<div class="skeleton-card"></div>';
     try {
         const API_URL = 'https://vit-notes-hub.onrender.com';
@@ -111,29 +116,42 @@ async function loadHistory() {
         } else {
             grid.innerHTML = '<p style="text-align:center; grid-column:1/-1; color:var(--text-secondary);">You haven\'t uploaded any notes yet.</p>';
         }
-    } catch (err) { console.error(err); }
+    } catch (err) { 
+        console.error(err);
+        showToast('Failed to load upload history.', 'error');
+    }
 }
 
 // --- Upload Workflow ---
 function setupUploadForm() {
+    // Only setup if form exists
+    const form = document.getElementById('upload-form');
+    if (!form) {
+        console.log('Upload form not found - not on upload tab');
+        return;
+    }
+
     const dropzone = document.getElementById('dropzone');
     const fileInput = document.getElementById('pdf-file');
     const fileInfo = document.getElementById('file-info');
-    const form = document.getElementById('upload-form');
     let selectedFile = null;
 
-    dropzone.addEventListener('click', () => fileInput.click());
-    dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
-    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
-    dropzone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dropzone.classList.remove('dragover');
-        if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
-    });
+    if (dropzone) {
+        dropzone.addEventListener('click', () => fileInput.click());
+        dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
+        dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('dragover');
+            if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
+        });
+    }
 
-    fileInput.addEventListener('change', (e) => {
-        if (e.target.files.length) handleFile(e.target.files[0]);
-    });
+    if (fileInput) {
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length) handleFile(e.target.files[0]);
+        });
+    }
 
     function handleFile(file) {
         if (file.type !== 'application/pdf') {
@@ -141,8 +159,10 @@ function setupUploadForm() {
             return;
         }
         selectedFile = file;
-        fileInfo.innerHTML = `<i class="fas fa-file-pdf"></i> ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
-        fileInfo.classList.remove('hidden');
+        if (fileInfo) {
+            fileInfo.innerHTML = `<i class="fas fa-file-pdf"></i> ${file.name} (${(file.size / 1024 / 1024).toFixed(2)} MB)`;
+            fileInfo.classList.remove('hidden');
+        }
     }
 
     form.addEventListener('submit', async (e) => {
@@ -154,14 +174,17 @@ function setupUploadForm() {
 
         const submitBtn = document.getElementById('submit-btn');
         const compressionStatus = document.getElementById('compression-status');
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        }
 
         let fileToUpload = selectedFile;
 
         // Compression Logic for files > 50MB
         if (selectedFile.size > 50 * 1024 * 1024) {
-            compressionStatus.classList.remove('hidden');
+            if (compressionStatus) compressionStatus.classList.remove('hidden');
             try {
                 fileToUpload = await mockCompressPDF(selectedFile);
                 
@@ -176,7 +199,7 @@ function setupUploadForm() {
                 resetForm();
                 return;
             } finally {
-                compressionStatus.classList.add('hidden');
+                if (compressionStatus) compressionStatus.classList.add('hidden');
             }
         }
 
@@ -201,22 +224,29 @@ function setupUploadForm() {
                 body: formData
             });
 
-            if (!res.ok) throw new Error('Upload failed');
+            if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(errorData.error || 'Upload failed');
+            }
             
             showToast('Notes uploaded successfully!', 'success');
             form.reset();
-            fileInfo.classList.add('hidden');
+            if (fileInfo) fileInfo.classList.add('hidden');
             selectedFile = null;
         } catch (err) {
-            showToast('Upload failed. Please try again.', 'error');
+            console.error('Upload error:', err);
+            showToast('Upload failed: ' + err.message, 'error');
         } finally {
             resetForm();
         }
     });
 
     function resetForm() {
-        submitBtn.disabled = false;
-        submitBtn.innerHTML = '<i class="fas fa-upload"></i> Upload Notes';
+        const submitBtn = document.getElementById('submit-btn');
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-upload"></i> Upload Notes';
+        }
     }
 }
 
@@ -230,12 +260,19 @@ async function mockCompressPDF(file) {
 
 // Make openPDF globally available for onclick handlers
 window.openPDF = function(id, url, title) {
-    initPDFViewer(url, title);
+    if (typeof initPDFViewer === 'function') {
+        initPDFViewer(url, title);
+    } else {
+        window.open(url, '_blank');
+    }
 };
 
 function showToast(message, type = 'info') {
     const container = document.getElementById('toast-container');
-    if (!container) return;
+    if (!container) {
+        alert(message);
+        return;
+    }
     
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;

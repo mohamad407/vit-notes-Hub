@@ -33,11 +33,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Login Modal
+    // Login Modal (only handle open/close, NOT the login button)
     const loginBtn = document.getElementById('login-btn');
     const loginModal = document.getElementById('login-modal');
     const closeModal = document.getElementById('close-modal');
-    const googleLoginBtn = document.getElementById('google-login-btn');
 
     if (loginBtn) {
         loginBtn.addEventListener('click', () => {
@@ -48,22 +47,6 @@ document.addEventListener('DOMContentLoaded', () => {
     if (closeModal) {
         closeModal.addEventListener('click', () => {
             loginModal.classList.add('hidden');
-        });
-    }
-
-    if (googleLoginBtn) {
-        googleLoginBtn.addEventListener('click', () => {
-            const provider = new firebase.auth.GoogleAuthProvider();
-            provider.setCustomParameters({
-                hd: 'vitstudent.ac.in',
-                prompt: 'select_account'
-            });
-            
-            firebase.auth().signInWithPopup(provider).catch((error) => {
-                if (error.code !== 'auth/popup-closed-by-user') {
-                    showToast('Login failed. Please ensure you are using a VIT email.', 'error');
-                }
-            });
         });
     }
 

@@ -10,10 +10,9 @@ const connectDB = async () => {
         console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
         
         // Create indexes
-        const User = require('../models/User');
-        const Note = require('../models/Note');
-        const Announcement = require('../models/Announcement');
-        
+     const User = require('../models/user');
+const Note = require('../models/note');
+const Announcement = require('../models/announcement');
         await User.createIndexes();
         await Note.createIndexes();
         await Announcement.createIndexes();

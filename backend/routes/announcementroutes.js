@@ -6,8 +6,7 @@ const {
     getAllAnnouncements,
     createAnnouncement,
     deleteAnnouncement
-} = require('../controllers/announcementController');
-
+} = require('../controllers/announcementcontroller');
 // Public - get latest
 router.get('/latest', getLatestAnnouncement);
 

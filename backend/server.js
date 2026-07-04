@@ -38,7 +38,7 @@ app.use(cors({
 
 // Rate limiting
 const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
+    windowMs: 15 * 60 * 1000,
     max: 100,
     message: { error: 'Too many requests, please try again later.' }
 });
@@ -71,8 +71,8 @@ app.use('/api/admin', adminRoutes);
 // Public stats endpoint
 app.get('/api/stats/public', async (req, res, next) => {
     try {
-        const User = require('./models/User');
-        const Note = require('./models/Note');
+        const User = require('./models/user');
+        const Note = require('./models/note');
         
         const users = await User.countDocuments();
         const notes = await Note.countDocuments();

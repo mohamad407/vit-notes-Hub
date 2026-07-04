@@ -1,4 +1,3 @@
-// Backend URL - CHANGE THIS to your actual Render backend URL
 const API_URL = 'https://vit-notes-hub.onrender.com';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -19,13 +18,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Fetch Announcements (graceful fallback)
+    // Fetch Announcements
     fetchAnnouncements();
 
-    // Fetch Latest Notes (graceful fallback)
+    // Fetch Latest Notes
     fetchLatestNotes();
 
-    // Fetch Stats (graceful fallback)
+    // Fetch Stats
     fetchStats();
 
     // Close announcement
@@ -107,7 +106,6 @@ async function fetchAnnouncements() {
         }
     } catch (err) { 
         console.log('Announcements: Backend not connected yet');
-        // Silently fail - no announcement bar shown
     }
 }
 

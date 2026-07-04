@@ -1,5 +1,3 @@
-const API_URL = 'https://vit-notes-hub.onrender.com';
-
 document.addEventListener('DOMContentLoaded', () => {
     // Generate particles
     createParticles();
@@ -97,6 +95,7 @@ function createParticles() {
 
 async function fetchAnnouncements() {
     try {
+        const API_URL = 'https://vit-notes-hub.onrender.com';
         const res = await fetch(`${API_URL}/api/announcements/latest`);
         const data = await res.json();
         if (data && data.text) {
@@ -111,6 +110,7 @@ async function fetchAnnouncements() {
 
 async function fetchLatestNotes() {
     try {
+        const API_URL = 'https://vit-notes-hub.onrender.com';
         const res = await fetch(`${API_URL}/api/notes?limit=3`);
         const data = await res.json();
         const grid = document.getElementById('latest-notes-grid');
@@ -151,6 +151,7 @@ async function fetchLatestNotes() {
 
 async function fetchStats() {
     try {
+        const API_URL = 'https://vit-notes-hub.onrender.com';
         const res = await fetch(`${API_URL}/api/stats/public`);
         const data = await res.json();
         document.getElementById('stat-users').innerText = data.users || 0;

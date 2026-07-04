@@ -11,14 +11,14 @@ const { connectDB } = require('./config/db');
 const { initFirebase } = require('./config/firebase');
 const { initCloudinary } = require('./config/cloudinary');
 
-// Routes
-const authRoutes = require('./routes/authRoutes');
-const noteRoutes = require('./routes/noteRoutes');
-const announcementRoutes = require('./routes/announcementRoutes');
-const adminRoutes = require('./routes/adminRoutes');
+// Routes - ALL LOWERCASE
+const authRoutes = require('./routes/authroutes');
+const noteRoutes = require('./routes/noteroutes');
+const announcementRoutes = require('./routes/announcementroutes');
+const adminRoutes = require('./routes/adminroutes');
 
-// Middleware
-const { errorHandler, notFound } = require('./middleware/errorHandler');
+// Middleware - ALL LOWERCASE
+const { errorHandler, notFound } = require('./middleware/errorhandler');
 
 const app = express();
 

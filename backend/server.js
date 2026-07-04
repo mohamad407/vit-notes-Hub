@@ -11,13 +11,13 @@ const { connectDB } = require('./config/db');
 const { initFirebase } = require('./config/firebase');
 const { initCloudinary } = require('./config/cloudinary');
 
-// Routes - ALL LOWERCASE
+// Routes
 const authRoutes = require('./routes/authroutes');
 const noteRoutes = require('./routes/noteroutes');
 const announcementRoutes = require('./routes/announcementroutes');
 const adminRoutes = require('./routes/adminroutes');
 
-// Middleware - ALL LOWERCASE
+// Middleware
 const { errorHandler, notFound } = require('./middleware/errorhandler');
 
 const app = express();
@@ -29,8 +29,10 @@ initCloudinary();
 
 // Security middleware
 app.use(helmet());
+
+// CORS Configuration - FIXED to allow all origins
 app.use(cors({
-    origin: process.env.FRONTEND_URL || '*',
+    origin: true,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']

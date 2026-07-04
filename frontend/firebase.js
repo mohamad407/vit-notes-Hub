@@ -1,6 +1,4 @@
 // Firebase Configuration
-
-// Initialize Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyAeDQuBuxUKpOt_5VzuNdPsEpJYKmhPEKY",
   authDomain: "vit-note-hub.firebaseapp.com",
@@ -11,6 +9,7 @@ const firebaseConfig = {
   measurementId: "G-LZ5CGW6BW8"
 };
 
+// Initialize Firebase
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 
@@ -48,10 +47,13 @@ auth.onAuthStateChanged(async (user) => {
         }
 
         try {
-            // Get ID Token
-            const idToken = await user.getIdToken();
+            // Get ID Token from Firebase
+            const idToken = await user.getIdToken(true); // Force refresh to get fresh token
             
-            // Send to backend for verification
+            // Store the Firebase ID token (this is what backend needs)
+            localStorage.setItem('vit_token', idToken);
+            
+            // Send to backend for user creation/verification
             const response = await fetch(`${API_URL}/api/auth/login`, {
                 method: 'POST',
                 headers: { 
@@ -67,8 +69,7 @@ auth.onAuthStateChanged(async (user) => {
             
             const data = await response.json();
             
-            // Store session token and user data
-            localStorage.setItem('vit_token', data.token);
+            // Store user data (but NOT the token - we keep the Firebase ID token)
             localStorage.setItem('user_data', JSON.stringify(data.user));
 
             // Redirect based on role

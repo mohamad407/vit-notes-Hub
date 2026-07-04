@@ -1,13 +1,4 @@
 // Firebase Configuration
-const firebaseConfig = {
-  apiKey: "AIzaSyAeDQuBuxUKpOt_5VzuNdPsEpJYKmhPEKY",
-  authDomain: "vit-note-hub.firebaseapp.com",
-  projectId: "vit-note-hub",
-  storageBucket: "vit-note-hub.firebasestorage.app",
-  messagingSenderId: "337330202314",
-  appId: "1:337330202314:web:64b326c38fc41da959f633",
-  measurementId: "G-LZ5CGW6BW8"
-};
 
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);

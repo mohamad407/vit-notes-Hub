@@ -1,5 +1,5 @@
-const Note = require('../models/Note');
-const User = require('../models/User');
+const Note = require('../models/note');
+const User = require('../models/user');
 const { uploadPDF, deletePDF } = require('../config/cloudinary');
 const { compressPDF, validatePDF } = require('../utils/pdfCompressor');
 

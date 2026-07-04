@@ -1,6 +1,6 @@
 const { getAuth } = require('../config/firebase');
    const User = require('../models/user');
-const Admin = require('../models/Admin');
+const Admin = require('../models/admin');
 
 // Verify Firebase token and attach user
 const verifyToken = async (req, res, next) => {

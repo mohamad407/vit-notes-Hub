@@ -187,8 +187,8 @@ const deleteNote = async (req, res, next) => {
             return res.status(404).json({ error: 'Note not found' });
         }
 
-        // Check ownership or admin
-        if (note.uploadedBy.toString() !== req.user._id.toString() && req.user.role !== 'admin') {
+        // Check if user owns this note
+        if (note.uploadedBy.toString() !== req.user._id.toString()) {
             return res.status(403).json({ error: 'Not authorized to delete this note' });
         }
 
@@ -199,7 +199,7 @@ const deleteNote = async (req, res, next) => {
         await Note.findByIdAndDelete(req.params.id);
 
         // Decrement user upload count
-        await User.findByIdAndUpdate(note.uploadedBy, {
+        await User.findByIdAndUpdate(req.user._id, {
             $inc: { uploadCount: -1 }
         });
 

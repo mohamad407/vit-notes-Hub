@@ -30,7 +30,7 @@ initCloudinary();
 // Security middleware
 app.use(helmet());
 
-// CORS Configuration - FIXED to allow all origins
+// CORS Configuration
 app.use(cors({
     origin: true,
     credentials: true,
@@ -46,9 +46,9 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
-// Body parsing
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true }));
+// Body parsing - Increased limits for large files
+app.use(express.json({ limit: '100mb' }));
+app.use(express.urlencoded({ extended: true, limit: '100mb' }));
 
 // Logging
 if (process.env.NODE_ENV === 'development') {

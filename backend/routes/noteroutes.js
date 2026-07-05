@@ -11,13 +11,13 @@ const {
     deleteNote
 } = require('../controllers/notecontroller');
 
-// IMPORTANT: Protected routes MUST come BEFORE the /:id route
+// Protected routes - MUST come BEFORE /:id
 router.post('/upload', verifyToken, upload.single('pdf'), uploadNote);
 router.get('/my-uploads', verifyToken, getMyNotes);
-router.get('/:id/download', verifyToken, downloadNote);
 router.delete('/:id', verifyToken, deleteNote);
+router.get('/:id/download', verifyToken, downloadNote);
 
-// Public routes (these come LAST)
+// Public routes (come LAST)
 router.get('/', getNotes);
 router.get('/:id', getNoteById);
 

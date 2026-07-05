@@ -104,11 +104,22 @@ async function loadHistory() {
             data.notes.forEach(note => {
                 grid.innerHTML += `
                     <div class="note-card glass fade-in">
-                        <div class="note-card-header"><h4>${note.courseName}</h4><span class="badge">${note.courseCode}</span></div>
+                        <div class="note-card-header">
+                            <h4>${note.courseName}</h4>
+                            <span class="badge">${note.courseCode}</span>
+                        </div>
                         <p>${note.description || 'No description'}</p>
                         <div class="note-card-footer">
                             <span>${new Date(note.createdAt).toLocaleDateString()}</span>
-                            <button class="btn btn-outline" onclick="openPDF('${note._id}', '${note.pdfUrl}', '${note.courseName}')"><i class="fas fa-eye"></i> View</button>
+                            <div style="display: flex; gap: 10px;">
+                                <button class="btn btn-outline" onclick="openPDF('${note._id}', '${note.pdfUrl}', '${note.courseName}')">
+                                    <i class="fas fa-eye"></i> View
+                                </button>
+                                <button class="btn btn-outline" style="background: #ef4444; color: white; border: none;" 
+                                    onclick="deleteNote('${note._id}')">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            </div>
                         </div>
                     </div>
                 `;
@@ -177,23 +188,25 @@ function setupUploadForm() {
         
         if (submitBtn) {
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading... Please wait';
         }
 
         let fileToUpload = selectedFile;
 
         // Compression Logic for files > 50MB
         if (selectedFile.size > 50 * 1024 * 1024) {
-            if (compressionStatus) compressionStatus.classList.remove('hidden');
+            if (compressionStatus) {
+                compressionStatus.classList.remove('hidden');
+                compressionStatus.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Compressing PDF...';
+            }
             try {
                 fileToUpload = await mockCompressPDF(selectedFile);
                 
                 if (fileToUpload.size > 50 * 1024 * 1024) {
-                    showToast('Compression failed. File still exceeds 50MB. Please upload a smaller file.', 'error');
+                    showToast('Compression failed. File still exceeds 50MB.', 'error');
                     resetForm();
                     return;
                 }
-                showToast('File compressed successfully!', 'success');
             } catch (err) {
                 showToast('Failed to compress PDF.', 'error');
                 resetForm();
@@ -203,7 +216,9 @@ function setupUploadForm() {
             }
         }
 
-        // Upload to Backend
+        // Show uploading progress
+        showToast('Uploading your notes... Please wait', 'info');
+
         const formData = new FormData();
         formData.append('pdf', fileToUpload);
         formData.append('courseCode', document.getElementById('course-code').value);
@@ -229,10 +244,16 @@ function setupUploadForm() {
                 throw new Error(errorData.error || 'Upload failed');
             }
             
-            showToast('Notes uploaded successfully!', 'success');
+            showToast('✅ Notes uploaded successfully!', 'success');
             form.reset();
             if (fileInfo) fileInfo.classList.add('hidden');
             selectedFile = null;
+            
+            // Switch to browse tab after successful upload
+            setTimeout(() => {
+                document.querySelector('[data-tab="browse"]').click();
+            }, 1500);
+            
         } catch (err) {
             console.error('Upload error:', err);
             showToast('Upload failed: ' + err.message, 'error');
@@ -264,6 +285,31 @@ window.openPDF = function(id, url, title) {
         initPDFViewer(url, title);
     } else {
         window.open(url, '_blank');
+    }
+};
+
+// Delete note function
+window.deleteNote = async function(noteId) {
+    if (!confirm('Are you sure you want to delete this note?')) return;
+    
+    try {
+        const API_URL = 'https://vit-notes-hub.onrender.com';
+        const token = localStorage.getItem('vit_token');
+        
+        showToast('Deleting note...', 'info');
+        
+        const res = await fetch(`${API_URL}/api/notes/${noteId}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        if (!res.ok) throw new Error('Delete failed');
+        
+        showToast('Note deleted successfully!', 'success');
+        loadHistory(); // Refresh the list
+    } catch (err) {
+        console.error(err);
+        showToast('Failed to delete note.', 'error');
     }
 };
 
